@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>減脂日記 · 186 試行</title>
-<!-- 減脂日記 v2（2026-11-27 靚化）：剔制＋蛋白 tally＋measurements＋guardrails＋Apple Health 捷徑 ingest。
-     ⭐ sleep ladder 常數要同 ~/health-diary/config.json 保持一致；沖涼提醒係固定 21:30（用戶習慣時段），唔再跟熄燈倒推。
-     訓練分開制：Mon 下肢 A／Tue 上肢 B＋晚跑／Wed 核心＋臀外側／Thu 上肢 C 輕＋晚跑 5km／Fri 下肢 D／Sat walk／Sun 長課。
-     Thigh gap 制：唔做負重內收（sumo/adductor 機/ankle weights 內側），練臀大＋臀中。 -->
+<!-- 減脂日記 v3（2026-11-27 tab 制）：用戶唔想不停 scroll down → 四個 tab（今日／飲食／量度／資源）＋頂部 live summary strip。
+     剔制＋蛋白 tally＋measurements＋guardrails＋Apple Health 捷徑 ingest。
+     ⭐ sleep ladder 常數要同 ~/health-diary/config.json 保持一致；沖涼提醒固定 21:45（用戶習慣 21:30-22:00），唔跟熄燈倒推。
+     訓練分開制：Mon 臀腿 A／Tue 上肢 B＋晚跑／Wed 核心＋臀外側／Thu 上肢輕＋晚跑 5km／Fri 臀腿 E／Sat walk／Sun 長課。
+     Thigh gap 制：唔做負重內收，練臀大＋臀中。
+     Worker 直接開見 bad key／人話 401＝正常（要 X-Diary-Key header，頁面自動帶）。 -->
 <style>
 :root{
   --bg1:#eef6f1; --bg2:#e7f0ec;
@@ -33,81 +35,92 @@
   }
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-body{margin:0;color:var(--ink);font-family:-apple-system,"SF Pro Text","PingFang HK","Helvetica Neue",sans-serif;font-size:16px;line-height:1.5;
+body{margin:0;color:var(--ink);font-family:-apple-system,"SF Pro Text","PingFang HK","Helvetica Neue",sans-serif;font-size:16px;line-height:1.45;
   background:linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 100%) fixed;padding-bottom:56px;}
-.wrap{max-width:680px;margin:0 auto;padding:16px 16px 0;}
-h1{font-size:21px;margin:0;letter-spacing:.2px;}
+.wrap{max-width:680px;margin:0 auto;padding:14px 14px 0;}
+h1{font-size:20px;margin:0;letter-spacing:.2px;}
 h2{font-size:15.5px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
 h2 .ic{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;background:var(--mint);flex:0 0 30px;}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .sub{color:var(--sub);font-size:13px;}
 .small{font-size:12.5px;color:var(--sub);}
-.banner{border-radius:14px;padding:11px 14px;font-size:13.5px;margin-bottom:12px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);}
+.banner{border-radius:14px;padding:10px 14px;font-size:13.5px;margin-bottom:10px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);}
 .banner.green{background:var(--green-bg);border-color:transparent;}
 .banner.amber{background:var(--amber-bg);border-color:transparent;}
 .banner.red{background:var(--red-bg);border-color:transparent;font-weight:600;}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
 .dot.ok{background:var(--green);} .dot.wait{background:var(--amber);} .dot.err{background:var(--red);}
 /* hero */
-.hero{background:linear-gradient(135deg,var(--green-d),var(--green) 70%);border:none;color:#fff;}
-.hero .sub2{color:rgba(255,255,255,.85);font-size:13px;}
-.hero .goal{font-size:24px;font-weight:800;letter-spacing:.3px;margin-top:2px;}
-.wbar{height:8px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;margin-top:12px;}
-.wbar > div{height:100%;background:rgba(255,255,255,.95);border-radius:6px;}
-.wmeta{display:flex;justify-content:space-between;margin-top:6px;color:rgba(255,255,255,.9);font-size:12px;}
+.hero{background:linear-gradient(135deg,var(--green-d),var(--green) 70%);border:none;color:#fff;padding:16px;}
+.hero .sub2{color:rgba(255,255,255,.85);font-size:12.5px;}
+.hero .goal{font-size:22px;font-weight:800;letter-spacing:.3px;margin-top:1px;}
+.wbar{height:7px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;margin-top:10px;}
+.wbar > div{height:100%;background:rgba(255,255,255,.95);border-radius:6px;transition:width .5s;}
+.wmeta{display:flex;justify-content:space-between;margin-top:5px;color:rgba(255,255,255,.9);font-size:11.5px;}
+.pill{display:inline-flex;align-items:center;background:rgba(255,255,255,.22);border-radius:20px;padding:3px 11px;font-size:12px;font-weight:600;margin:8px 6px 0 0;color:#fff;}
+.strip{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap;}
+.strip .cell{flex:1;min-width:100px;background:rgba(255,255,255,.16);border-radius:12px;padding:7px 9px;text-align:center;}
+.strip .cell b{display:block;font-size:16px;font-weight:800;}
+.strip .cell span{font-size:10.5px;color:rgba(255,255,255,.85);}
+/* tabs */
+.tabbar{position:sticky;top:0;z-index:50;display:flex;gap:6px;padding:10px 0 12px;background:linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 100%);}
+.tabbar button{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:10px 4px;font-size:13.5px;font-weight:700;color:var(--sub);transition:all .18s;box-shadow:var(--shadow);}
+.tabbar button.on{background:var(--ink);color:var(--card);border-color:var(--ink);transform:translateY(-1px);}
+.panel{display:none;}
+.panel.on{display:block;animation:fadein .22s;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 /* checklist */
-.item{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line);min-height:56px;}
+.item{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px solid var(--line);min-height:50px;}
 .item:last-child{border-bottom:none;}
-.item .box{width:30px;height:30px;border:2px solid var(--line);border-radius:10px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;background:var(--card);transition:transform .15s,background .2s;cursor:pointer;}
+.item .box{width:28px;height:28px;border:2px solid var(--line);border-radius:9px;flex:0 0 28px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;background:var(--card);transition:transform .15s,background .2s;cursor:pointer;}
 .item .box:active{transform:scale(.88);}
 .item.done .box{background:var(--green);border-color:var(--green);animation:pop .25s;}
 .item.done .txt{color:var(--sub);text-decoration:line-through;}
-.item .txt{flex:1;font-size:15px;font-weight:500;}
-.item .meta{font-size:12px;color:var(--sub);font-weight:400;text-decoration:none;margin-top:1px;}
+.item .txt{flex:1;font-size:14.5px;font-weight:500;}
+.item .meta{font-size:11.5px;color:var(--sub);font-weight:400;text-decoration:none;margin-top:1px;}
 @keyframes pop{0%{transform:scale(.7);}60%{transform:scale(1.15);}100%{transform:scale(1);}}
 .seg{display:flex;gap:6px;flex-wrap:wrap;}
-.seg button{border:1.5px solid var(--line);background:var(--card);border-radius:11px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:500;transition:all .15s;}
+.seg button{border:1.5px solid var(--line);background:var(--card);border-radius:11px;padding:7px 11px;font-size:12.5px;color:var(--ink);font-weight:500;transition:all .15s;}
 .seg button.on{background:var(--ink);color:var(--card);border-color:var(--ink);}
 .seg button.on.redopt{background:var(--red);border-color:var(--red);color:#fff;}
 /* protein */
-.big{font-size:30px;font-weight:800;letter-spacing:.3px;}
-.bar{height:12px;background:var(--mint);border-radius:8px;overflow:hidden;margin:10px 0 4px;}
+.big{font-size:28px;font-weight:800;letter-spacing:.3px;}
+.bar{height:12px;background:var(--mint);border-radius:8px;overflow:hidden;margin:9px 0 4px;}
 .bar > div{height:100%;background:linear-gradient(90deg,var(--green),var(--green-d));border-radius:8px;transition:width .4s cubic-bezier(.2,.8,.2,1);}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.chips button{border:1.5px solid var(--line);background:var(--card);border-radius:20px;padding:9px 13px;font-size:13px;color:var(--ink);font-weight:500;transition:all .15s;}
+.chips button{border:1.5px solid var(--line);background:var(--card);border-radius:20px;padding:8px 12px;font-size:13px;color:var(--ink);font-weight:500;transition:all .15s;}
 .chips button:active{transform:scale(.94);background:var(--green-bg);}
-input[type=number],input[type=text]{font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;width:100%;background:var(--card);color:var(--ink);}
+input[type=number],input[type=text]{font-size:16px;padding:9px 11px;border:1.5px solid var(--line);border-radius:12px;width:100%;background:var(--card);color:var(--ink);}
 input:focus{outline:none;border-color:var(--green);}
-.meas-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.meas-grid label{font-size:12px;color:var(--sub);display:block;margin-bottom:5px;font-weight:600;}
-.btn{border:none;background:var(--green);color:#fff;border-radius:13px;padding:12px 18px;font-size:15px;font-weight:700;transition:transform .15s;}
+.meas-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.meas-grid label{font-size:12px;color:var(--sub);display:block;margin-bottom:4px;font-weight:600;}
+.btn{border:none;background:var(--green);color:#fff;border-radius:13px;padding:11px 17px;font-size:15px;font-weight:700;transition:transform .15s;}
 .btn:active{transform:scale(.95);}
 .btn.gray{background:var(--sub);}
 a{color:var(--blue);text-decoration:none;}
-.videolist a{display:block;padding:11px 6px;border-bottom:1px solid var(--line);font-size:14px;font-weight:500;}
+.videolist a{display:block;padding:10px 6px;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:500;}
 .videolist a:last-child{border-bottom:none;}
-details{margin-top:10px;}
-summary{cursor:pointer;font-size:14px;color:var(--blue);padding:7px 0;font-weight:600;list-style:none;}
+details{margin-top:9px;}
+summary{cursor:pointer;font-size:14px;color:var(--blue);padding:6px 0;font-weight:600;list-style:none;}
 summary::before{content:"▸ ";color:var(--sub);}
 details[open] summary::before{content:"▾ ";}
-table.hist{width:100%;border-collapse:collapse;font-size:12.5px;}
-table.hist th,table.hist td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:center;}
+table.hist{width:100%;border-collapse:collapse;font-size:12px;}
+table.hist th,table.hist td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:center;}
 table.hist th{color:var(--sub);font-weight:600;}
 table.hist td:first-child,table.hist th:first-child{text-align:left;white-space:nowrap;}
 .yes{color:var(--green);font-weight:800;} .no{color:var(--red);font-weight:700;} .na{color:var(--line);}
-.streak{display:flex;gap:10px;flex-wrap:wrap;}
-.streak .s{background:var(--mint);border-radius:14px;padding:10px 14px;font-size:12px;color:var(--sub);flex:1;min-width:110px;text-align:center;}
-.streak .s b{font-size:20px;color:var(--ink);display:block;font-weight:800;}
-.taskbox{background:var(--mint);border-radius:14px;padding:13px 15px;font-size:14px;margin-bottom:10px;}
-.taskbox .tt{font-weight:800;font-size:16px;margin-bottom:4px;}
-.recipe{font-size:14px;padding:4px 2px;}
-.recipe li{margin-bottom:8px;}
+.streak{display:flex;gap:9px;flex-wrap:wrap;}
+.streak .s{background:var(--mint);border-radius:14px;padding:9px 12px;font-size:11.5px;color:var(--sub);flex:1;min-width:100px;text-align:center;}
+.streak .s b{font-size:19px;color:var(--ink);display:block;font-weight:800;}
+.taskbox{background:var(--mint);border-radius:14px;padding:12px 14px;font-size:13.5px;margin-bottom:8px;}
+.taskbox .tt{font-weight:800;font-size:15.5px;margin-bottom:4px;}
+.recipe{font-size:13.5px;padding:4px 2px;}
+.recipe li{margin-bottom:7px;}
 ul.recipe{padding-left:20px;margin:6px 0;}
 ol.recipe{padding-left:20px;margin:6px 0;}
-code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12.5px;}
+code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
 .footer{color:var(--sub);font-size:12px;text-align:center;margin-top:8px;}
-.pill{display:inline-flex;align-items:center;background:rgba(255,255,255,.22);border-radius:20px;padding:4px 12px;font-size:12.5px;font-weight:600;margin-right:6px;margin-top:8px;color:#fff;}
 </style>
 </head>
 <body>
@@ -121,152 +134,166 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12.5px;}
       </div>
       <div class="sub2" style="text-align:right;"><span class="dot wait" id="syncdot" style="background:rgba(255,255,255,.6);"></span><span id="synctxt">同步中…</span><div id="dateline" style="margin-top:6px;"></div></div>
     </div>
-    <div>
-      <span class="pill">🥩 蛋白 90g/日</span><span class="pill">⏰ 186：14:00-20:00</span><span class="pill">⛔ 體重底線 111</span>
-    </div>
+    <span class="pill">🥩 90g/日</span><span class="pill">⏰ 186 · 14:00-20:00</span><span class="pill">⛔ 底線 111</span>
     <div class="wbar"><div id="wkbar" style="width:0%"></div></div>
     <div class="wmeta"><span id="wkrange"></span><span id="goaldates"></span></div>
+    <div class="strip">
+      <div class="cell"><b id="s_checks">0/11</b><span>今日剔咗</span></div>
+      <div class="cell"><b id="s_prot">0g</b><span>蛋白質</span></div>
+      <div class="cell"><b id="s_water">0ml</b><span>水</span></div>
+      <div class="cell"><b id="s_lights">--:--</b><span>今晚熄燈</span></div>
+    </div>
   </div>
 
   <div id="banners"></div>
 
-  <div class="card">
-    <h2><span class="ic">🏋️</span>今日任務</h2>
-    <div class="taskbox" id="taskbody"></div>
-    <div class="videolist" id="taskvideos"></div>
+  <div class="tabbar">
+    <button id="tb_today" class="on" onclick="switchTab('today')">📋 今日</button>
+    <button id="tb_eat" onclick="switchTab('eat')">🥩 飲食</button>
+    <button id="tb_meas" onclick="switchTab('meas')">📏 量度</button>
+    <button id="tb_more" onclick="switchTab('more')">📚 資源</button>
   </div>
 
-  <div class="card">
-    <h2><span class="ic">✅</span>今日剔剔剔</h2>
-    <div id="checklist"></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🥩</span>蛋白質 tally <span class="small">目標 90g</span></h2>
-    <div class="row"><div class="big" id="prot">0g</div><div class="small" id="prothint"></div></div>
-    <div class="bar"><div id="protbar" style="width:0%"></div></div>
-    <div class="chips" id="protchips"></div>
-    <div class="row" style="margin-top:12px;">
-      <input type="number" id="protcustom" placeholder="自訂 grams" inputmode="numeric" style="width:120px;">
-      <button class="btn" onclick="addProtCustom()">加</button>
-      <button class="btn gray" onclick="undoProt()">撤銷</button>
+  <div class="panel on" id="tab_today">
+    <div class="card">
+      <h2><span class="ic">🏋️</span>今日任務</h2>
+      <div class="taskbox" id="taskbody"></div>
+      <div class="videolist" id="taskvideos"></div>
     </div>
-    <div class="small" id="protlog" style="margin-top:8px;"></div>
+    <div class="card">
+      <h2><span class="ic">✅</span>今日剔剔剔</h2>
+      <div id="checklist"></div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2><span class="ic">💧</span>水 <span class="small">目標 2,000ml（起身 500ml 先）</span></h2>
-    <div class="row">
-      <div class="big" id="waterml">0ml</div>
-      <div class="seg">
-        <button onclick="addWater(250)">+250</button>
-        <button onclick="addWater(500)">+500</button>
-        <button onclick="addWater(-250)">−250</button>
+  <div class="panel" id="tab_eat">
+    <div class="card">
+      <h2><span class="ic">🥩</span>蛋白質 tally <span class="small">目標 90g</span></h2>
+      <div class="row"><div class="big" id="prot">0g</div><div class="small" id="prothint"></div></div>
+      <div class="bar"><div id="protbar" style="width:0%"></div></div>
+      <div class="chips" id="protchips"></div>
+      <div class="row" style="margin-top:12px;">
+        <input type="number" id="protcustom" placeholder="自訂 grams" inputmode="numeric" style="width:120px;">
+        <button class="btn" onclick="addProtCustom()">加</button>
+        <button class="btn gray" onclick="undoProt()">撤銷</button>
       </div>
+      <div class="small" id="protlog" style="margin-top:8px;"></div>
     </div>
-    <div class="bar"><div id="waterbar" style="width:0%;background:linear-gradient(90deg,#4cb8e8,#2278c9);"></div></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">📏</span>Measurements <span class="small">每朝空腹如廁後量，固定條件</span></h2>
-    <div class="meas-grid">
-      <div><label>體重 lbs</label><input type="number" step="0.1" id="m_weight" inputmode="decimal"></div>
-      <div><label>體脂 %</label><input type="number" step="0.1" id="m_bf" inputmode="decimal"></div>
-      <div><label>肌肉量 lbs</label><input type="number" step="0.1" id="m_muscle" inputmode="decimal"></div>
-      <div><label>水分 %</label><input type="number" step="0.1" id="m_water" inputmode="decimal"></div>
-      <div><label>內臟脂肪</label><input type="number" step="0.5" id="m_visceral" inputmode="decimal"></div>
-      <div><label>腰圍 cm（肚臍水平）</label><input type="number" step="0.5" id="m_waist" inputmode="decimal"></div>
-    </div>
-    <div class="row" style="margin-top:12px;">
-      <button class="btn" onclick="saveMeas()">儲存今日</button>
-      <span class="small" id="measNote"></span>
-    </div>
-    <svg id="trend" width="100%" height="96" viewBox="0 0 600 96" style="margin-top:12px;"></svg>
-    <div class="small" id="trendlabel"></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🔥</span>Streaks</h2>
-    <div class="streak" id="streaks"></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🗓</span>近 14 日</h2>
-    <div style="overflow-x:auto;"><table class="hist" id="hist"></table></div>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🎯</span>Thigh gap 誠實指南</h2>
-    <div style="font-size:14px;">你嘅觀察係啱嘅：<b>負重練內側大腿（adductor）會愈練愈粗</b>。gap 由三樣嘢決定：</div>
-    <ul class="recipe">
-      <li><b>骨盆結構</b> — 改唔到，唔使同自己過唔去</li>
-      <li><b>整體體脂</b> — 你成個 plan 本身就係：體脂去到 19-20%，內側自然收</li>
-      <li><b>內側肌肉量</b> — 避開會「大」嘅動作</li>
-    </ul>
-    <details><summary>❌ 見到呢啲動作嘅「thigh gap workout」即刻 skip</summary>
-      <ul class="recipe">
-        <li>負重 <b>Sumo squat</b>（闊腳深蹲）— adductor 主導，練大內側</li>
-        <li><b>Adductor 機／夾腿機</b>（gym 嗰部坐住夾開）</li>
-        <li><b>Ankle weights 側臥內側抬腿</b>（夾重量嗰種）</li>
-        <li>好多片標「slim thighs」但開場就 sumo squat — 中招點會愈做愈痴，你已經試過</li>
-      </ul>
-    </details>
-    <details><summary>✅ 應該做：練臀大肌＋臀中肌（視覺開 gap 位）</summary>
-      <ul class="recipe">
-        <li><b>Hip thrust／Glute bridge</b> — 臀大肌主力，日日 plan 已包</li>
-        <li><b>RDL／Good morning</b> — 膕繩肌＋臀下層</li>
-        <li><b>窄距 squat／Reverse lunge／Step-up</b> — quad＋臀，唔會撐大內側</li>
-        <li><b>臀中肌耐力</b>（輕量高下數）：Side-lying leg raise 無負重 20-25 下、Clamshell、Monster walk 用 mini band 輕阻力 — 翹上層，大腿相對細</li>
-        <li>無負重慢速 Pilates 式內側動作（舒展唔增肌）一週 1-2 次可以</li>
-      </ul>
-      <div class="small">時間表：呢啲全部已經排咗喺 Mon 下肢 A／Wed 臀外側日／Fri 下肢 D — 照 diary 跟就係 thigh-friendly，唔使自己搵片。</div>
-    </details>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">🥣</span>Overnight oats 配方（16:00）</h2>
-    <ul class="recipe">
-      <li>Chobani High Protein 0% <b>1杯（150g）</b> ≈15g 蛋白</li>
-      <li>燕麥片 <b>30g</b>＋奇亞籽 <b>1 茶匙</b>＋肉桂少許</li>
-      <li><b>Whey 半勺（15g）</b>← 加呢樣先係「夠好」嘅關鍵 ≈12g 蛋白</li>
-      <li>無糖豆漿／脫脂奶 <b>80ml</b></li>
-      <li>食前先加：藍莓 80g 或奇異果 1 個＋<b>granola 15g</b>（臨食先落先脆）</li>
-      <li><b>≈340 kcal · 32g 蛋白</b></li>
-    </ul>
-    <details><summary>granola 唔夠好？點揀／點換</summary>
-      <ul class="recipe">
-        <li>揀牌標準：每份 <b>糖 <8g</b>、有堅果籽、冇氫化油</li>
-        <li>自製 3 分鐘版：燕麥 30g＋南瓜籽 1 茶匙＋杏仁片 1 茶匙乾鍋烘香 — 零糖，脆過 granola</li>
-      </ul>
-    </details>
-  </div>
-
-  <div class="card">
-    <h2><span class="ic">📲</span>Apple Health／Fitness 自動同步</h2>
-    <div class="small">網頁同 Scriptable 都讀唔到 Apple Health（iOS 私隱制）— 唯一路徑係 iOS <b>捷徑（Shortcuts）</b>讀 HealthKit → POST 上 diary worker。整一次（約 5 分鐘）。</div>
-    <details><summary>捷徑逐步教學（貼住整）</summary>
-      <ol class="recipe">
-        <li>先確認你個 <b>scale app 有 sync 去 Apple Health</b>（app 內設定 → Apple Health → 開 Body Mass／Body Fat）</li>
-        <li>Shortcuts app → ＋ 新捷徑 → 改名「Health→Diary」</li>
-        <li>加動作 <b>Find Health Samples</b>：Type 揀 <b>Body Mass</b>、Limit 1（最新嗰筆）</li>
-        <li>再加 Find Health Samples：<b>Body Fat Percentage</b>、Limit 1</li>
-        <li>再加 Find Health Samples：<b>Steps</b>，加 filter「Start Date is Today」</li>
-        <li>再加 Find Health Samples：<b>Apple Exercise Time</b>，Start Date is Today</li>
-        <li>加 <b>Get Contents of URL</b>：填下面 worker address，Method <b>POST</b>，Headers 加 <code>X-Diary-Key</code>＝下面 key，Request Body 揀 JSON：<code>{"d":"[當日日期 Short]","weight":Body Mass,"bf":Body Fat Percentage,"steps":Steps,"exercise_min":Apple Exercise Time}</code>（值用變數揀對應 sample）</li>
-        <li>試行一次 → 呢頁 measurements 應該自動有體重／體脂</li>
-        <li>（可選）Automation → Time of Day 21:00 → 行呢個捷徑</li>
-      </ol>
-    </details>
-    <details><summary>Sync 技術資料</summary>
-      <div class="small" style="line-height:1.8;">
-        Worker：<span id="wurl"></span><br>
-        Key（diary 專用）：<code id="wkey" style="word-break:break-all;"></code><br>
-        Routes：POST /api/day（ticks）、/api/meas、/api/health（捷徑）、GET /api/day?d=
+    <div class="card">
+      <h2><span class="ic">💧</span>水 <span class="small">目標 2,000ml（起身 500ml 先）</span></h2>
+      <div class="row">
+        <div class="big" id="waterml">0ml</div>
+        <div class="seg">
+          <button onclick="addWater(250)">+250</button>
+          <button onclick="addWater(500)">+500</button>
+          <button onclick="addWater(-250)">−250</button>
+        </div>
       </div>
-    </details>
+      <div class="bar"><div id="waterbar" style="width:0%;background:linear-gradient(90deg,#4cb8e8,#2278c9);"></div></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🥣</span>Overnight oats 配方（16:00）</h2>
+      <ul class="recipe">
+        <li>Chobani High Protein 0% <b>1杯（150g）</b> ≈15g 蛋白</li>
+        <li>燕麥片 <b>30g</b>＋奇亞籽 <b>1 茶匙</b>＋肉桂少許</li>
+        <li><b>Whey 半勺（15g）</b>← 加呢樣先係「夠好」嘅關鍵 ≈12g 蛋白</li>
+        <li>無糖豆漿／脫脂奶 <b>80ml</b></li>
+        <li>食前先加：藍莓 80g 或奇異果 1 個＋<b>granola 15g</b>（臨食先落先脆）</li>
+        <li><b>≈340 kcal · 32g 蛋白</b></li>
+      </ul>
+      <details><summary>granola 唔夠好？點揀／點換</summary>
+        <ul class="recipe">
+          <li>揀牌標準：每份 <b>糖 <8g</b>、有堅果籽、冇氫化油</li>
+          <li>自製 3 分鐘版：燕麥 30g＋南瓜籽 1 茶匙＋杏仁片 1 茶匙乾鍋烘香 — 零糖，脆過 granola</li>
+        </ul>
+      </details>
+    </div>
   </div>
 
-  <div class="footer">2026-11-26 開機 · lean 90 lbs 一磅唔准蝕 · 瞓 7.5-8h 係最大槓桿 · 沖涼 21:30 定響</div>
+  <div class="panel" id="tab_meas">
+    <div class="card">
+      <h2><span class="ic">📏</span>Measurements <span class="small">每朝空腹如廁後量，固定條件</span></h2>
+      <div class="meas-grid">
+        <div><label>體重 lbs</label><input type="number" step="0.1" id="m_weight" inputmode="decimal"></div>
+        <div><label>體脂 %</label><input type="number" step="0.1" id="m_bf" inputmode="decimal"></div>
+        <div><label>肌肉量 lbs</label><input type="number" step="0.1" id="m_muscle" inputmode="decimal"></div>
+        <div><label>水分 %</label><input type="number" step="0.1" id="m_water" inputmode="decimal"></div>
+        <div><label>內臟脂肪</label><input type="number" step="0.5" id="m_visceral" inputmode="decimal"></div>
+        <div><label>腰圍 cm（肚臍水平）</label><input type="number" step="0.5" id="m_waist" inputmode="decimal"></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" onclick="saveMeas()">儲存今日</button>
+        <span class="small" id="measNote"></span>
+      </div>
+      <svg id="trend" width="100%" height="96" viewBox="0 0 600 96" style="margin-top:12px;"></svg>
+      <div class="small" id="trendlabel"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🔥</span>Streaks</h2>
+      <div class="streak" id="streaks"></div>
+    </div>
+    <div class="card">
+      <h2><span class="ic">🗓</span>近 14 日</h2>
+      <div style="overflow-x:auto;"><table class="hist" id="hist"></table></div>
+    </div>
+  </div>
+
+  <div class="panel" id="tab_more">
+    <div class="card">
+      <h2><span class="ic">🎯</span>Thigh gap 誠實指南</h2>
+      <div style="font-size:14px;">你嘅觀察係啱嘅：<b>負重練內側大腿（adductor）會愈練愈粗</b>。gap 由三樣嘢決定：</div>
+      <ul class="recipe">
+        <li><b>骨盆結構</b> — 改唔到，唔使同自己過唔去</li>
+        <li><b>整體體脂</b> — 體脂去到 19-20%，內側自然收（成個 plan 本身就係）</li>
+        <li><b>內側肌肉量</b> — 避開會「大」嘅動作</li>
+      </ul>
+      <details><summary>❌ 見到呢啲動作嘅「thigh gap workout」即刻 skip</summary>
+        <ul class="recipe">
+          <li>負重 <b>Sumo squat</b>（闊腳深蹲）— adductor 主導，練大內側</li>
+          <li><b>Adductor 機／夾腿機</b></li>
+          <li><b>Ankle weights 側臥內側抬腿</b>（夾重量嗰種）</li>
+          <li>好多片標「slim thighs」但開場就 sumo squat — 你已經中過招</li>
+        </ul>
+      </details>
+      <details><summary>✅ 應該做：練臀大肌＋臀中肌（視覺開 gap 位）</summary>
+        <ul class="recipe">
+          <li><b>Hip thrust／Glute bridge</b> — 臀大肌主力，plan 已包</li>
+          <li><b>RDL</b> — 膕繩肌＋臀下層</li>
+          <li><b>窄距 squat／Reverse lunge／Step-up</b> — 唔會撐大內側</li>
+          <li><b>臀中肌耐力</b>（輕量高下數）：Side-lying leg raise 無負重 2×25、Clamshell 2×25、mini band Monster walk</li>
+          <li>無負重慢速 Pilates 式內側動作一週 1-2 次可以</li>
+        </ul>
+        <div class="small">時間表：已排喺 Mon 臀腿 A／Wed 臀外側日／Fri 臀腿 E — 照 diary 跟就係 thigh-friendly。</div>
+      </details>
+    </div>
+    <div class="card">
+      <h2><span class="ic">📲</span>Apple Health／Fitness 自動同步</h2>
+      <div class="small">網頁同 Scriptable 都讀唔到 Apple Health（iOS 私隱制）— 唯一路徑係 iOS <b>捷徑（Shortcuts）</b>讀 HealthKit → POST 上 diary worker。整一次（約 5 分鐘）。</div>
+      <details><summary>捷徑逐步教學（貼住整）</summary>
+        <ol class="recipe">
+          <li>先確認你個 <b>scale app 有 sync 去 Apple Health</b>（app 內設定 → Apple Health → 開 Body Mass／Body Fat）</li>
+          <li>Shortcuts app → ＋ 新捷徑 → 改名「Health→Diary」</li>
+          <li>加動作 <b>Find Health Samples</b>：Type 揀 <b>Body Mass</b>、Limit 1（最新嗰筆）</li>
+          <li>再加 Find Health Samples：<b>Body Fat Percentage</b>、Limit 1</li>
+          <li>再加 Find Health Samples：<b>Steps</b>，加 filter「Start Date is Today」</li>
+          <li>再加 Find Health Samples：<b>Apple Exercise Time</b>，Start Date is Today</li>
+          <li>加 <b>Get Contents of URL</b>：填下面 worker address，Method <b>POST</b>，Headers 加 <code>X-Diary-Key</code>＝下面 key，Request Body 揀 JSON：<code>{"d":"[當日日期 Short]","weight":Body Mass,"bf":Body Fat Percentage,"steps":Steps,"exercise_min":Apple Exercise Time}</code>（值用變數揀對應 sample）</li>
+          <li>試行一次 → 呢頁 measurements 應該自動有體重／體脂</li>
+          <li>（可選）Automation → Time of Day 21:00 → 行呢個捷徑</li>
+        </ol>
+      </details>
+      <details><summary>Sync 技術資料</summary>
+        <div class="small" style="line-height:1.8;">
+          Worker：<span id="wurl"></span><br>
+          Key（diary 專用）：<code id="wkey" style="word-break:break-all;"></code><br>
+          Routes：POST /api/day（ticks）、/api/meas、/api/health（捷徑）、GET /api/day?d=<br>
+          ⚠️ 直接用瀏覽器開 worker URL 會見 401 人話提示＝<b>正常</b>（要帶 X-Diary-Key header；頁面剔嘢時自動帶，唔使理）。
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="footer">2026-11-26 開機 · lean 90 lbs 一磅唔准蝕 · 瞓 7.5-8h 係最大槓桿 · 沖涼 21:30-22:00 定響</div>
 </div>
 
 <script>
@@ -295,6 +322,20 @@ function hmOf(m){m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%6
 function tonightLights(){var t=todayKey();var lm=null;for(var i=0;i<LADDER.length;i++){if(t>=LADDER[i][0])lm=LADDER[i][1];}return lm;}
 function inMaint(){var t=todayKey();for(var i=0;i<MAINT.length;i++){if(t>=MAINT[i][0]&&t<=MAINT[i][1])return true;}return false;}
 function weekNo(){var d=new Date(START.replace(/-/g,"/")),n=new Date(todayKey().replace(/-/g,"/"));return Math.max(1,Math.min(14,Math.floor((n-d)/86400e3/7)+1));}
+
+/* ---------- tabs ---------- */
+function switchTab(name){
+  ["today","eat","meas","more"].forEach(function(t){
+    document.getElementById("tab_"+t).className="panel"+(t===name?" on":"");
+    document.getElementById("tb_"+t).className=(t===name?"on":"");
+  });
+  try{localStorage.setItem("hd_tab",name);}catch(e){}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function restoreTab(){
+  var t=null;try{t=localStorage.getItem("hd_tab");}catch(e){}
+  if(t&&["today","eat","meas","more"].indexOf(t)>=0&&t!=="today")switchTab(t);
+}
 
 /* ---------- state ---------- */
 var D = blank();
@@ -344,21 +385,21 @@ function pullKV(){
   function finish(){lsSave();render();}
 }
 
-/* ---------- checklist 定義（沖涼固定 21:30——用戶習慣時段） ---------- */
+/* ---------- checklist 定義（沖涼 21:30-22:00 用戶習慣時段） ---------- */
 function listDef(){
   var L=tonightLights(),ph=hmOf(minsOf(L)-30);
   return [
     {id:"water_am", t:"晨水 500ml（咖啡前）", m:"起身第一件事"},
     {id:"poop",     t:"☕ 咖啡＋廁所", m:"三態：順／有但硬／冇", seg:["順","有但硬","冇"], segv:["ok","hard","none"]},
     {id:"open_window", t:"14:00 開窗（第一餐有 30g+ 蛋白）"},
-    {id:"oats", t:"🥣 Overnight oats 16:00", m:"32g 蛋白，配方喺下面"},
+    {id:"oats", t:"🥣 Overnight oats 16:00", m:"32g 蛋白"},
     {id:"dinner", t:"晚餐＋收窗（平日 20:00／跑日 20:45）"},
     {id:"workout", t:"運動（今日任務見上面）"},
     {id:"chips", t:"薯片：冇家庭裝入屋", m:"細包上限每週 2", seg:["冇食","細包×1","細包×2","家庭裝❌"], segv:["none","x1","x2","family"]},
-    {id:"shower", t:"🚿 沖涼（21:30-22:00 你嘅時段）", m:"沖 1 個鐘 → 搞半個鐘 → 剛剛好接熄燈"},
+    {id:"shower", t:"🚿 沖涼（21:30-22:00 你嘅時段）", m:"沖 1 個鐘＋搞半個鐘 → 剛剛好接熄燈"},
     {id:"phone_down", t:"📵 電話放下", m:"今晚 "+ph},
     {id:"lights", t:"😴 熄燈", m:"今晚目標 "+L+"（梯階第 "+weekNo()+" 週）"},
-    {id:"period", t:"月經日（停損追蹤用，唔係 tick 戰績）"}
+    {id:"period", t:"月經日（停損追蹤用）"}
   ];
 }
 
@@ -489,6 +530,12 @@ function render(){
   var w=D.water&&D.water.ml?D.water.ml:0;
   document.getElementById("waterml").textContent=w+"ml";
   document.getElementById("waterbar").style.width=Math.min(100,w/WATER_TARGET*100)+"%";
+  /* hero summary strip */
+  var tickCount=0;listDef().forEach(function(it){if(D.items[it.id]&&D.items[it.id].v)tickCount++;});
+  document.getElementById("s_checks").textContent=tickCount+"/11";
+  document.getElementById("s_prot").textContent=p+"g"+(p>=PROTEIN_TARGET?" ✓":"");
+  document.getElementById("s_water").textContent=w+"ml";
+  document.getElementById("s_lights").textContent=tonightLights();
   /* meas form */
   var map={m_weight:"weight",m_bf:"bf",m_muscle:"muscle",m_water:"water",m_visceral:"visceral",m_waist:"waist"};
   for(var id in map){var el=document.getElementById(id);if(document.activeElement!==el)el.value=(D.meas&&D.meas[map[id]])?D.meas[map[id]].v:"";}
@@ -501,8 +548,8 @@ function render(){
     var line=P.map(function(pt){return pt[0]+","+pt[1];}).join(" ");
     var area="20,92 "+line+" "+P[P.length-1][0]+",92";
     var floorY=(80-(WEIGHT_FLOOR-mn)/(mx-mn)*62).toFixed(1);
-    svg='<polygon points="'+area+'" fill="url(#g1)" opacity="0.25"/>';
-    svg+='<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e9f5c"/><stop offset="1" stop-color="#0e9f5c" stop-opacity="0"/></linearGradient></defs>';
+    svg='<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e9f5c"/><stop offset="1" stop-color="#0e9f5c" stop-opacity="0"/></linearGradient></defs>';
+    svg+='<polygon points="'+area+'" fill="url(#g1)" opacity="0.25"/>';
     svg+='<polyline points="'+line+'" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
     svg+='<circle cx="'+P[P.length-1][0]+'" cy="'+P[P.length-1][1]+'" r="5" fill="var(--green)" stroke="var(--card)" stroke-width="2.5"/>';
     svg+='<line x1="0" y1="'+floorY+'" x2="600" y2="'+floorY+'" stroke="var(--red)" stroke-dasharray="6,5" stroke-width="1.4" opacity=".7"/>';
@@ -547,6 +594,7 @@ document.getElementById("wurl").textContent=WORKER;
 document.getElementById("wkey").textContent=DIARY_KEY;
 D=lsLoad();
 render();
+restoreTab();
 pullKV();
 </script>
 </body>
