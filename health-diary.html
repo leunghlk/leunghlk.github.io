@@ -346,9 +346,24 @@ function lsSave(){localStorage.setItem(LSK(),JSON.stringify(D));pushHist();}
 function pushHist(){var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}
   var w=D.meas&&D.meas.weight?D.meas.weight.v:null; if(w==null)return;
   h=h.filter(function(r){return r.d!==todayKey();}); h.push({d:todayKey(),w:w,bf:D.meas.bf?D.meas.bf.v:null});
-  var cut=dateKey(new Date(now().getTime()-31*86400e3));
+  var cut=dateKey(new Date(now().getTime()-200*86400e3));
   h=h.filter(function(r){return r.d>=cut;}); h.sort(function(a,b){return a.d<b.d?-1:1;});
   localStorage.setItem("hd_hist",JSON.stringify(h));}
+function pullRecent(){
+  /* 開頁時由 KV 拉歷史量度（種咗 5-24／11-23 兩次 scale report），本地有嘅日唔覆蓋 */
+  fetch(WORKER+"/api/recent?days=40",{headers:kvHeaders()})
+  .then(function(r){return r.json();})
+  .then(function(j){
+    if(!j.ok||!j.days||!j.days.length)return;
+    var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}
+    var have={};h.forEach(function(r){have[r.d]=1;});
+    j.days.forEach(function(r){if(!have[r.d]&&r.weight)h.push({d:r.d,w:r.weight,bf:r.bf});});
+    var cut=dateKey(new Date(now().getTime()-200*86400e3));
+    h=h.filter(function(r){return r.d>=cut;}); h.sort(function(a,b){return a.d<b.d?-1:1;});
+    localStorage.setItem("hd_hist",JSON.stringify(h));
+    render();
+  }).catch(function(){});
+}
 
 /* ---------- KV sync ---------- */
 function kvHeaders(){return {"Content-Type":"application/json","X-Diary-Key":DIARY_KEY};}
@@ -553,7 +568,7 @@ function render(){
     svg+='<polyline points="'+line+'" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
     svg+='<circle cx="'+P[P.length-1][0]+'" cy="'+P[P.length-1][1]+'" r="5" fill="var(--green)" stroke="var(--card)" stroke-width="2.5"/>';
     svg+='<line x1="0" y1="'+floorY+'" x2="600" y2="'+floorY+'" stroke="var(--red)" stroke-dasharray="6,5" stroke-width="1.4" opacity=".7"/>';
-    document.getElementById("trendlabel").textContent="體重 30 日（"+hw[0].d.slice(5)+" → "+hw[hw.length-1].d.slice(5)+"）· 紅虛線＝111 底線";
+    document.getElementById("trendlabel").textContent="體重歷史（"+hw[0].d.slice(5)+" → "+hw[hw.length-1].d.slice(5)+"）· 紅虛線＝111 底線";
   }else{
     svg='<text x="300" y="48" text-anchor="middle" fill="var(--sub)" font-size="14">填幾日 measurements 就有趨勢</text>';
     document.getElementById("trendlabel").textContent="";
@@ -596,6 +611,7 @@ D=lsLoad();
 render();
 restoreTab();
 pullKV();
+pullRecent();
 </script>
 </body>
 </html>
