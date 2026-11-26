@@ -269,18 +269,33 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
     <div class="card">
       <h2><span class="ic">📲</span>Apple Health／Fitness 自動同步</h2>
       <div class="small">網頁同 Scriptable 都讀唔到 Apple Health（iOS 私隱制）— 唯一路徑係 iOS <b>捷徑（Shortcuts）</b>讀 HealthKit → POST 上 diary worker。整一次（約 5 分鐘）。</div>
-      <details><summary>捷徑逐步教學（貼住整）</summary>
+      <details><summary>Shortcut step-by-step (FULL ENGLISH — follow exactly)</summary>
+        <div class="small" style="margin-bottom:6px;">⭐ 關鍵：Find Health Samples 甩出嚟係 sample 物件，必須加 <b>Get Details of Health Sample → Value</b> 先係數字；步數要用 <b>Calculate Statistics → Sum</b>。唔使填日期（server 自動用香港今日）。</div>
         <ol class="recipe">
-          <li>先確認你個 <b>scale app 有 sync 去 Apple Health</b>（app 內設定 → Apple Health → 開 Body Mass／Body Fat）</li>
-          <li>Shortcuts app → ＋ 新捷徑 → 改名「Health→Diary」</li>
-          <li>加動作 <b>Find Health Samples</b>：Type 揀 <b>Body Mass</b>、Limit 1（最新嗰筆）</li>
-          <li>再加 Find Health Samples：<b>Body Fat Percentage</b>、Limit 1</li>
-          <li>再加 Find Health Samples：<b>Steps</b>，加 filter「Start Date is Today」</li>
-          <li>再加 Find Health Samples：<b>Apple Exercise Time</b>，Start Date is Today</li>
-          <li>加 <b>Get Contents of URL</b>：填下面 worker address，Method <b>POST</b>，Headers 加 <code>X-Diary-Key</code>＝下面 key，Request Body 揀 JSON：<code>{"d":"[當日日期 Short]","weight":Body Mass,"bf":Body Fat Percentage,"steps":Steps,"exercise_min":Apple Exercise Time}</code>（值用變數揀對應 sample）</li>
-          <li>試行一次 → 呢頁 measurements 應該自動有體重／體脂</li>
-          <li>（可選）Automation → Time of Day 21:00 → 行呢個捷徑</li>
+          <li>First make sure your <b>scale app syncs to Apple Health</b> (in the scale app: Settings → Apple Health → enable Body Mass / Body Fat Percentage)</li>
+          <li>Shortcuts app → <b>+</b> (New Shortcut) → tap the name → rename it <b>Health to Diary</b></li>
+          <li>Add action <b>Find Health Samples</b> → tap the highlighted <b>Type</b> → search and choose <b>Body Mass</b> → expand the action → set <b>Limit</b> = 1 and <b>Sort By</b> = <b>Date, Newest First</b></li>
+          <li>Add action <b>Get Details of Health Sample</b> → its input auto-fills with the Body Mass sample → set <b>Detail</b> = <b>Value</b> ← 呢步先係真數字</li>
+          <li>Add action <b>Find Health Samples</b> → Type = <b>Body Fat Percentage</b> → Limit 1, newest first</li>
+          <li>Add action <b>Get Details of Health Sample</b> → Detail = <b>Value</b></li>
+          <li>Add action <b>Find Health Samples</b> → Type = <b>Steps</b> → tap <b>Add Filter</b> → <b>Start Date</b> <b>Is Today</b></li>
+          <li>Add action <b>Calculate Statistics</b> → Statistics = <b>Sum</b>（input 自動接住 Steps samples）← 今日總步數</li>
+          <li>Add action <b>Find Health Samples</b> → Type = <b>Apple Exercise Time</b> → Add Filter → Start Date Is Today</li>
+          <li>Add action <b>Calculate Statistics</b> → Sum ← 今日運動分鐘</li>
+          <li>Add action <b>Get Contents of URL</b> → URL: <code>https://health-diary-sync.leunghlk.workers.dev/api/health</code></li>
+          <li>Expand it → <b>Method</b>: change GET to <b>POST</b></li>
+          <li>Expand → <b>Headers</b>: add field — Key: <code>X-Diary-Key</code>, Value: <code>1ea6694cef20345a6d18bc7ce550cab0</code></li>
+          <li>Expand → <b>Request Body</b>: choose <b>JSON</b> → tap <b>Add New Field</b> ×4（key 逐個打字，value 㩒住揀上面嘅變數）：<code>weight</code>＝Body Mass 嗰個 Value；<code>bf</code>＝Body Fat 嗰個 Value；<code>steps</code>＝第一個 Sum；<code>exercise_min</code>＝第二個 Sum。❌ 唔好加 d／date field</li>
+          <li>Add action <b>Show Result</b> → input auto = Contents of URL result（行完會見 server 回覆）</li>
+          <li>Tap ▶ Run — 第一次行會問 Health permission → <b>Allow All</b>。預期結果：<code>{"ok":true,...}</code> 入面見到你嘅體重／步數</li>
         </ol>
+        <div class="small" style="margin-top:6px;">
+          Debug：
+          ① 想試連線 → Safari 開 <code style="word-break:break-all;">https://health-diary-sync.leunghlk.workers.dev/api/ping</code>，見 <code>{"ok":true,...}</code> 即網絡通（呢條唔使 key）；
+          ② Run 時死喺 Find Health Samples ＝ Health permission 未批（再行一次揀 Allow）；
+          ③ 回覆有 ok:true 但頁面冇數 ＝ header key 打錯（對第 13 步）；
+          ④ Automation：Automations → New → Time of Day 21:00 → Run this shortcut。
+        </div>
       </details>
       <details><summary>Sync 技術資料</summary>
         <div class="small" style="line-height:1.8;">
