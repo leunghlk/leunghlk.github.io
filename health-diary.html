@@ -473,6 +473,8 @@ function listDef(){
   return [
     {id:"water_am", t:"晨水 500ml（咖啡前）", m:"起身第一件事"},
     {id:"poop",     t:"☕ 咖啡＋廁所", m:"三態：順／有但硬／冇", seg:["順","有但硬","冇"], segv:["ok","hard","none"]},
+    {id:"kiwi",     t:"🥝 晨間三寶：奇異果×2＋酸奶／香蕉（朝早）", m:"餵隻腸啟動 gastrocolic — 暢順 protocol 核心"},
+    {id:"magnesium", t:"💊 鎂 300-400mg（晚飯後）", m:"朝早軟便嘅後勤"},
     {id:"open_window", t:"14:00 開窗（第一餐有 30g+ 蛋白）"},
     {id:"oats", t:"🥣 Overnight oats 16:00", m:"32g 蛋白"},
     {id:"dinner", t:"晚餐＋收窗（平日 20:00／跑日 20:45）"},
@@ -650,7 +652,7 @@ function render(){
   document.getElementById("waterbar").style.width=Math.min(100,w/WATER_TARGET*100)+"%";
   /* hero summary strip */
   var tickCount=0;listDef().forEach(function(it){if(D.items[it.id]&&D.items[it.id].v)tickCount++;});
-  document.getElementById("s_checks").textContent=tickCount+"/11";
+  document.getElementById("s_checks").textContent=tickCount+"/"+listDef().length;
   document.getElementById("s_prot").textContent=p+"g"+(p>=protTarget()?" ✓":"");
   document.getElementById("s_water").textContent=w+"ml";
   document.getElementById("s_lights").textContent=tonightLights();
