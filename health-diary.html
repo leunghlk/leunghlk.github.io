@@ -216,6 +216,9 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
   <div class="panel" id="tab_meas">
     <div class="card">
       <h2><span class="ic">📏</span>Measurements <span class="small">每朝空腹如廁後量，固定條件</span></h2>
+      <div class="row" style="margin-bottom:11px;">
+        <div style="flex:1;"><label style="font-size:12px;color:var(--sub);display:block;margin-bottom:4px;font-weight:600;">量度日期（改舊數／刪除先揀，預設今日）</label><input type="date" id="m_date" onchange="onDatePick()"></div>
+      </div>
       <div class="meas-grid">
         <div><label>體重 lbs</label><input type="number" step="0.1" id="m_weight" inputmode="decimal"></div>
         <div><label>體脂 %</label><input type="number" step="0.1" id="m_bf" inputmode="decimal"></div>
@@ -228,6 +231,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
         <button class="btn" onclick="saveMeas()">儲存今日</button>
         <span class="small" id="measNote"></span>
       </div>
+      <div class="seg" style="margin-top:10px;"><button id="tb_tw" class="on" onclick="setTrend('w')">體重 lbs</button><button id="tb_tbf" onclick="setTrend('bf')">體脂 %</button></div>
       <svg id="trend" width="100%" height="96" viewBox="0 0 600 96" style="margin-top:12px;"></svg>
       <div class="small" id="trendlabel"></div>
       <div style="overflow-x:auto;margin-top:10px;"><table class="hist" id="meashist"></table></div>
@@ -393,6 +397,8 @@ function pullRecent(){
 function kvHeaders(){return {"Content-Type":"application/json","X-Diary-Key":DIARY_KEY};}
 function setDot(cls,txt){document.getElementById("syncdot").className="dot "+cls;document.getElementById("synctxt").textContent=txt;}
 var pushTimer=null;
+var TREND="w";
+function setTrend(m){TREND=m;try{localStorage.setItem("hd_trend",m);}catch(e){}render();}
 function queuePush(){clearTimeout(pushTimer);setDot("wait","同步中…");pushTimer=setTimeout(pushKV,900);}
 function pushKV(){
   var patch={};for(var k in D.items){patch[k]={v:D.items[k].v,ts:D.items[k].ts||0};}
@@ -470,21 +476,52 @@ function addWater(ml){
   lsSave();render();queuePush();
 }
 function saveMeas(){
+  var dSel=document.getElementById("m_date").value||todayKey();
   var f={};var now0=Date.now();
   [["weight","m_weight"],["bf","m_bf"],["muscle","m_muscle"],["water","m_water"],["visceral","m_visceral"],["waist","m_waist"]].forEach(function(p){
-    var el=document.getElementById(p[1]);var v=el.value===""?null:+el.value;
+    var el=document.getElementById(p[1]);var v=el.value===""?null:Math.round((+el.value)*10)/10; /* 全部取 1 個小數位 */
     if(v!=null&&isFinite(v))f[p[0]]={v:v,ts:now0};
   });
-  if(!Object.keys(f).length){document.getElementById("measNote").textContent="冇填任何數";return;}
-  D.meas=D.meas||{};
-  for(var k in f){D.meas[k]=f[k];}
-  lsSave();render();queuePush();
-  fetch(WORKER+"/api/meas",{method:"POST",headers:kvHeaders(),body:JSON.stringify({d:todayKey(),fields:f})}).catch(function(){});
-  document.getElementById("measNote").textContent="已儲存 ✓";
+  var note=document.getElementById("measNote");
+  /* 全空＋揀咗舊日期＝刪除該行 */
+  if(!Object.keys(f).length){
+    if(dSel===todayKey()){note.textContent="全空＝刪除只適用於揀咗舊日期";return;}
+    localStorage.setItem("hd_hist",JSON.stringify(histW().filter(function(r){return r.d!==dSel;})));
+    try{var dd=JSON.parse(localStorage.getItem("hd_day_"+dSel));if(dd){delete dd.meas;localStorage.setItem("hd_day_"+dSel,JSON.stringify(dd));}}catch(e){}
+    fetch(WORKER+"/api/meas",{method:"POST",headers:kvHeaders(),body:JSON.stringify({d:dSel,fields:{weight:{v:null},bf:{v:null},muscle:{v:null},water:{v:null},visceral:{v:null},waist:{v:null}}})}).catch(function(){});
+    render();note.textContent=dSel.slice(5)+" 該行已刪 ✓";return;
+  }
+  if(dSel===todayKey()){
+    D.meas=D.meas||{};
+    for(var k in f){D.meas[k]=f[k];}
+    lsSave();render();queuePush();
+    note.textContent="已儲存 ✓";
+  }else{
+    try{var dd2=JSON.parse(localStorage.getItem("hd_day_"+dSel))||{items:{},protein:{sum:0,log:[],ts:0},water:{ml:0,ts:0}};dd2.meas=dd2.meas||{};for(var k2 in f){dd2.meas[k2]=f[k2];}localStorage.setItem("hd_day_"+dSel,JSON.stringify(dd2));}catch(e){}
+    var h2=histW().filter(function(r){return r.d!==dSel;});
+    h2.push({d:dSel,w:f.weight?f.weight.v:null,bf:f.bf?f.bf.v:null,muscle:f.muscle?f.muscle.v:null,water:f.water?f.water.v:null,visceral:f.visceral?f.visceral.v:null,waist:f.waist?f.waist.v:null});
+    var cut=dateKey(new Date(now().getTime()-200*86400e3));
+    h2=h2.filter(function(r){return r.d>=cut;});h2.sort(function(a,b){return a.d<b.d?-1:1;});
+    localStorage.setItem("hd_hist",JSON.stringify(h2));
+    render();note.textContent=dSel.slice(5)+" 已更新 ✓";
+  }
+  fetch(WORKER+"/api/meas",{method:"POST",headers:kvHeaders(),body:JSON.stringify({d:dSel,fields:f})}).catch(function(){});
 }
+function onDatePick(){
+  var dSel=document.getElementById("m_date").value;
+  if(!dSel)return;
+  var rec=null;histW().forEach(function(r){if(r.d===dSel)rec=r;});
+  var map={m_weight:"w",m_bf:"bf",m_muscle:"muscle",m_water:"water",m_visceral:"visceral",m_waist:"waist"};
+  for(var id in map){document.getElementById(id).value=(rec&&rec[map[id]]!=null)?rec[map[id]]:"";}
+  document.getElementById("measNote").textContent=dSel===todayKey()?"今日":"編輯 "+dSel.slice(5)+"（清空全部＋儲存＝刪除該行）";
+}
+function editRow(d){document.getElementById("m_date").value=d;onDatePick();window.scrollTo({top:0,behavior:"smooth"});}
 
 /* ---------- guardrails ---------- */
-function histW(){var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}return h;}
+function histW(){var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}
+  /* 11-26 116.8/22.9＝11-27 深夜測試數據經 merge 漏入本地（我嘅衰）— 渲染一律跳過；用 edit 揀該日清空儲存可真刪 */
+  return h.filter(function(r){return !(r.d==="2026-11-26"&&r.w===116.8&&r.bf===22.9);});}
+function fmt1(x){return (x===null||x===undefined||x==="")?"–":(+x).toFixed(1);}
 function avgN(arr,fromD,toD){var s=0,c=0;arr.forEach(function(r){if(r.d>=fromD&&r.d<=toD){s+=r.w;c++;}});return c?s/c:null;}
 function daysAgoKey(n){var d=new Date(todayKey().replace(/-/g,"/"));d.setDate(d.getDate()-n);return dateKey(d);}
 function guardBanners(){
@@ -580,22 +617,30 @@ function render(){
   var map={m_weight:"weight",m_bf:"bf",m_muscle:"muscle",m_water:"water",m_visceral:"visceral",m_waist:"waist"};
   for(var id in map){var el=document.getElementById(id);if(document.activeElement!==el)el.value=(D.meas&&D.meas[map[id]])?D.meas[map[id]].v:"";}
   if(D.health&&D.health.steps)document.getElementById("measNote").textContent="❤️ Health sync：步數 "+D.health.steps+"｜運動 "+(D.health.exercise_min||0)+" min";
-  /* trend */
-  var hw=histW();var svg="";
+  /* trend（體重／體脂 toggle，TREND 由 setTrend 控制） */
+  var svg="";
+  var all=histW();
+  var hw=TREND==="w"?all.filter(function(r){return r.w!=null;}):all.filter(function(r){return r.bf!=null;});
+  var valf=TREND==="w"?function(r){return r.w;}:function(r){return r.bf;};
+  document.getElementById("tb_tw").className=TREND==="w"?"on":"";
+  document.getElementById("tb_tbf").className=TREND==="bf"?"on":"";
   if(hw.length>=2){
-    var ws=hw.map(function(r){return r.w;});var mn=Math.min.apply(null,ws)-0.4,mx=Math.max.apply(null,ws)+0.4;
-    var P=hw.map(function(r,i){var x=20+i/(hw.length-1)*560;var y=80-(r.w-mn)/(mx-mn)*62;return [x,y.toFixed(1)];});
+    var ws=hw.map(valf);var mn=Math.min.apply(null,ws)-0.4,mx=Math.max.apply(null,ws)+0.4;
+    var P=hw.map(function(r,i){var x=20+i/(hw.length-1)*560;var y=80-(valf(r)-mn)/(mx-mn)*62;return [x,y.toFixed(1)];});
     var line=P.map(function(pt){return pt[0]+","+pt[1];}).join(" ");
     var area="20,92 "+line+" "+P[P.length-1][0]+",92";
-    var floorY=(80-(WEIGHT_FLOOR-mn)/(mx-mn)*62).toFixed(1);
-    svg='<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e9f5c"/><stop offset="1" stop-color="#0e9f5c" stop-opacity="0"/></linearGradient></defs>';
+    var floorV=TREND==="w"?WEIGHT_FLOOR:19;
+    var floorY=(80-(floorV-mn)/(mx-mn)*62).toFixed(1);
+    var hex=TREND==="w"?"#0e9f5c":"#c47a08";
+    var cv=TREND==="w"?"green":"amber";
+    svg='<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+hex+'"/><stop offset="1" stop-color="'+hex+'" stop-opacity="0"/></linearGradient></defs>';
     svg+='<polygon points="'+area+'" fill="url(#g1)" opacity="0.25"/>';
-    svg+='<polyline points="'+line+'" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-    /* hover/tap 點：透明 r=9 hit layer 帶 data，下面細點做視覺 */
-    svg+=P.map(function(pt,i){var r=hw[i];return '<circle class="tp" cx="'+pt[0]+'" cy="'+pt[1]+'" r="10" fill="transparent" data-d="'+r.d+'" data-w="'+r.w+'" data-bf="'+(r.bf==null?"":r.bf)+'"/>';}).join("");
-    svg+=P.map(function(pt){return '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="3.5" fill="var(--green)" stroke="var(--card)" stroke-width="1.5"/>';}).join("");
-    svg+='<line x1="0" y1="'+floorY+'" x2="600" y2="'+floorY+'" stroke="var(--red)" stroke-dasharray="6,5" stroke-width="1.4" opacity=".7"/>';
-    document.getElementById("trendlabel").textContent="體重歷史（"+hw[0].d.slice(5)+" → "+hw[hw.length-1].d.slice(5)+"）· 紅虛線＝111 底線";
+    svg+='<polyline points="'+line+'" fill="none" stroke="var(--'+cv+')" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+    /* hover/tap hit layer（透明 r=10）＋視覺細點 */
+    svg+=P.map(function(pt,i){var r=hw[i];return '<circle class="tp" cx="'+pt[0]+'" cy="'+pt[1]+'" r="10" fill="transparent" data-d="'+r.d+'" data-w="'+(r.w!=null?r.w:"")+'" data-bf="'+(r.bf==null?"":r.bf)+'" data-m="'+TREND+'"/>';}).join("");
+    svg+=P.map(function(pt){return '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="3.5" fill="var(--'+cv+')" stroke="var(--card)" stroke-width="1.5"/>';}).join("");
+    svg+='<line x1="0" y1="'+floorY+'" x2="600" y2="'+floorY+'" stroke="var(--'+(TREND==="w"?"red":"amber")+')" stroke-dasharray="6,5" stroke-width="1.4" opacity=".7"/>';
+    document.getElementById("trendlabel").textContent=(TREND==="w"?"體重歷史":"體脂% 歷史")+"（"+hw[0].d.slice(5)+" → "+hw[hw.length-1].d.slice(5)+"）· "+(TREND==="w"?"紅虛線＝111 底線":"橙虛線＝19% 目標");
   }else{
     svg='<text x="300" y="48" text-anchor="middle" fill="var(--sub)" font-size="14">填幾日 measurements 就有趨勢</text>';
     document.getElementById("trendlabel").textContent="";
@@ -636,20 +681,26 @@ function renderMeasHist(){
   var h=histW().slice(-15).reverse();var el=document.getElementById("meashist");if(!el)return;
   var ht="<tr><th>日期</th><th>lbs</th><th>BF%</th><th>肌肉</th><th>水分%</th><th>內臟</th><th>腰cm</th></tr>";
   if(!h.length)ht+="<tr><td colspan='7' class='small'>聽朝磅完填第一行</td></tr>";
-  h.forEach(function(r){ht+="<tr><td>"+r.d.slice(5)+"</td><td><b>"+(r.w!=null?r.w:"–")+"</b></td><td>"+(r.bf!=null?r.bf:"–")+"</td><td>"+(r.muscle!=null?r.muscle:"–")+"</td><td>"+(r.water!=null?r.water:"–")+"</td><td>"+(r.visceral!=null?r.visceral:"–")+"</td><td>"+(r.waist!=null?r.waist:"–")+"</td></tr>";});
+  h.forEach(function(r){ht+="<tr onclick=\"editRow('"+r.d+"')\" style=\"cursor:pointer;\"><td>"+r.d.slice(5)+" ✎</td><td><b>"+fmt1(r.w)+"</b></td><td>"+fmt1(r.bf)+"</td><td>"+fmt1(r.muscle)+"</td><td>"+fmt1(r.water)+"</td><td>"+fmt1(r.visceral)+"</td><td>"+fmt1(r.waist)+"</td></tr>";});
   el.innerHTML=ht;
 }
 
 /* ---------- boot ---------- */
 var tipEl=document.getElementById("tip");
-function tipShow(html,x,y){tipEl.innerHTML=html;tipEl.style.display="block";tipEl.style.left=Math.min(window.innerWidth-150,x+12)+"px";tipEl.style.top=Math.max(4,y-40)+"px";}
+function fmt1b(x){return (x===null||x===undefined||x==="")?"":(+x).toFixed(1);}
+function tipShow(html,x,y){tipEl.innerHTML=html;tipEl.style.display="block";tipEl.style.left=Math.min(window.innerWidth-170,Math.max(4,x+12))+"px";tipEl.style.top=Math.max(4,y-44)+"px";}
+function tipHtml(t){var m=t.dataset.m;
+  var s=m==="bf"?"<b>"+fmt1b(t.dataset.bf)+" %</b>"+(t.dataset.w?" · "+fmt1b(t.dataset.w)+" lbs":""):"<b>"+fmt1b(t.dataset.w)+" lbs</b>"+(t.dataset.bf?" · BF "+fmt1b(t.dataset.bf)+"%":"");
+  return s+"<br><span style='opacity:.7;font-weight:400;'>"+t.dataset.d+"</span>";}
 document.addEventListener("mouseover",function(e){var t=e.target;
-  if(t.classList&&t.classList.contains("tp")){tipShow("<b>"+t.dataset.w+" lbs</b>"+(t.dataset.bf?" · BF "+t.dataset.bf+"%":"")+"<br><span style='opacity:.7;font-weight:400;'>"+t.dataset.d+"</span>",e.clientX,e.clientY);}
+  if(t.classList&&t.classList.contains("tp")){tipShow(tipHtml(t),e.clientX,e.clientY);}
   else tipEl.style.display="none";});
 document.addEventListener("touchstart",function(e){var t=e.target;
-  if(t.classList&&t.classList.contains("tp")){var r0=t.getBoundingClientRect();tipShow("<b>"+t.dataset.w+" lbs</b>"+(t.dataset.bf?" · BF "+t.dataset.bf+"%":"")+"<br><span style='opacity:.7;font-weight:400;'>"+t.dataset.d+"</span>",r0.left,r0.top);setTimeout(function(){tipEl.style.display="none";},2600);}},{passive:true});
+  if(t.classList&&t.classList.contains("tp")){var r0=t.getBoundingClientRect();tipShow(tipHtml(t),r0.left,r0.top);setTimeout(function(){tipEl.style.display="none";},2600);}},{passive:true});
 document.getElementById("wurl").textContent=WORKER;
 document.getElementById("wkey").textContent=DIARY_KEY;
+try{TREND=localStorage.getItem("hd_trend")||"w";}catch(e){}
+document.getElementById("m_date").value=todayKey();
 D=lsLoad();
 render();
 restoreTab();
