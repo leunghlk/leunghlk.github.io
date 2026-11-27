@@ -10,7 +10,7 @@
      訓練分開制：Mon 臀腿 A／Tue 上肢 B＋晚跑／Wed 核心＋臀外側／Thu 上肢輕＋晚跑 5km／Fri 臀腿 E／Sat walk／Sun 長課。
      Thigh gap 制：唔做負重內收，練臀大＋臀中。
      Worker 直接開見 bad key／人話 401＝正常（要 X-Diary-Key header，頁面自動帶）。
-     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 37 間）＋建議食／唔好食；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
+     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 43 間）＋建議食／唔好食；高蛋白 low fat 導向：good row=[菜式,蛋白g,log label,kcal?,脂g?]；src badge＝營養師實測（IG @nutrition_ah_ga 啊家 RD 6 品牌實測數＋@live4well.io 兩餸飯＋Bowtie/F45 譚仔數）；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
 <style>
 :root{
   --bg1:#eef6f1; --bg2:#e7f0ec;
@@ -103,6 +103,7 @@ input:focus{outline:none;border-color:var(--green);}
 .btn.gray{background:var(--sub);}
 .mini{border:1.5px solid var(--line);background:var(--green-bg);border-radius:14px;padding:2px 9px;font-size:11.5px;font-weight:700;color:var(--green-d);margin-left:5px;vertical-align:middle;}
 .mini:active{transform:scale(.92);}
+.srcbadge{display:inline-block;background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:1px 8px;font-size:10.5px;font-weight:700;margin-left:5px;vertical-align:2px;white-space:nowrap;}
 .restbox{border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:9px;}
 .restbox .rn{font-weight:800;font-size:14.5px;}
 .restbox .li{font-size:13.5px;padding:3px 0 3px 14px;text-indent:-14px;}
@@ -220,9 +221,10 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
     </div>
     <div class="card">
       <h2><span class="ic">🍜</span>減脂外食指南 <span class="small">揀區域 → 具體餐廳＋建議／避食</span></h2>
-      <div class="small" style="margin-bottom:10px;">揀餐三步：① 先鎖蛋白 30g+ → ② 走汁／走炸／走白汁 → ③ 白飯半碗＋灼菜搭夠。湯麵個湯係鈉＋油主體，呷味就夠。「＋計」直接入上面個蛋白 tally。⭐2026-11 資料 — 舖頭會執會搬，去前開 map 睇下仲開唔開最穩陣。</div>
+      <div class="small" style="margin-bottom:10px;">揀餐三步：① 先鎖蛋白 30g+ → ② 走汁／走炸／走白汁 → ③ 白飯半碗＋灼菜搭夠。營養師總結：✅去皮／走醬／清湯／揀海鮮雞肉 ⚠️炸物／芝士／辣油／肥牛排骨。「＋計」入蛋白 tally；kcal／脂＝營養師實測或官方數。⭐2026-11 資料 — 去前開 map 睇下舖頭仲開唔開。</div>
       <div class="seg" id="eatdist" style="margin-bottom:12px;"></div>
       <div id="eatrest"></div>
+      <div class="small" style="margin-top:6px;">資料源：IG <b>@nutrition_ah_ga</b>（澳洲註冊營養師潘卓琳 · 6 大品牌實測）· <b>@live4well.io</b>（兩餸飯心法）· Bowtie／F45（譚仔數據）· <b>@nutrilion.hk</b></div>
     </div>
   </div>
 
@@ -637,10 +639,10 @@ cw:{name:"中環／金鐘",list:[
    ["香滑馬拉糕＋灼菜","10","添好運馬拉糕"]],
   bad:["酥皮叉燒包（酥皮＝油）","炸兩、鹹水角","鳳爪（醬汁油）"]},
  {n:"譚仔／三哥（中環多間）",t:"米線",good:[
-   ["三小辣湯＋淨米線＋雞肉／薄片＋灼菜","28","譚仔：雞薄片米線"],
-   ["山泉水清湯＋雞絲米線","24","譚仔：清湯雞絲"]],
-  bad:["沙嗲／麻辣湯底（高脂高鈉）","炸醬、腩肉、豬手、雞中翼","酸辣粉＝薯粉純澱粉，零蛋白"],
-  tip:"湯底鈉極高 — 呷味就得，唔好飲晒個湯"},
+   ["三小辣／清湯＋淨米線＋雞肉片＋灼菜","28","譚仔：雞薄片米線","450","12"],
+   ["蒟蒻麵代替米線（減約 200 卡）＋雞肉片","25","譚仔：蒟蒻麵減卡版","320",""]],
+  bad:["麻辣湯底＝清湯脂肪 1.4 倍","10 小辣麻辣湯鈉 ≈2,800mg（唔飲湯都 ~2,000）","炸醬、腩肉、豬手、雞中翼","酸辣粉＝薯粉純澱粉，零蛋白"],
+  tip:"湯底鈉極高 — 呷味就夠；蒟蒻麵係減脂 cheat code"},
  {n:"大家樂／大快活（金鐘多間）",t:"連鎖快餐",good:[
    ["燒雞脾飯（去皮）＋灼菜走汁","32","燒雞脾飯"],
    ["蒸氣雞扒飯＋白飯叫半","34","蒸氣雞扒飯"]],
@@ -651,10 +653,19 @@ cw:{name:"中環／金鐘",list:[
    ["6吋＋double meat 先夠 30g","32","Subway 6吋加肉"]],
   bad:["金槍魚（tuna mayo 一勺 ≈250kcal）","12吋／芝士餡邊＋曲奇＋汽水","甜洋蔥醬、燒烤醬（隱形糖）"],
   tip:"9-Grain Honey Oat 麵底好過 Italian White"},
- {n:"吉野家（中環多間）",t:"丼飯",good:[
-   ["燒雞丼（汁另上）＋白飯半碗","32","吉野家燒雞丼"],
-   ["豚肉薑燒丼＋溫泉蛋","28","吉野家薑燒豚丼"]],
-  bad:["炸豬排丼、天婦羅丼（炸物主場）","牛肉丼大盛＋extra 醬汁","炸雞＋溏心蛋 combo"]}
+ {n:"吉野家（中環多間）",t:"丼飯",src:"啊家RD",good:[
+   ["野菜煎雞飯（去皮走汁）","35","吉野家野菜煎雞飯","534","10"],
+   ["豚肉薑燒丼＋溫泉蛋（汁另上）","28","吉野家薑燒豚丼"]],
+  bad:["日式咖喱牛肉飯 690kcal／22F（肥牛＋咖喱汁）","炸豬排丼、天婦羅丼（炸物主場）","牛肉丼大盛＋extra 醬汁"],
+  tip:"營養師實測：去皮即減 ~80 卡，走汁再減 ~30 卡"},
+ {n:"麥當勞（中環多間）",t:"快餐",src:"啊家RD",good:[
+   ["板燒雞腿包（走醬）＋粟米杯","23","麥當勞板燒走醬","319",""]],
+  bad:["蘑菇安格斯 644kcal／39F（≈2 包中薯條）","薯條＋汽水 combo","雙層芝士類"],
+  tip:"減脂期突然想食 M 記：板燒走醬＋粟米杯就搞掂 🌽"},
+ {n:"MOS BURGER（多區商場）",t:"漢堡",src:"啊家RD",good:[
+   ["照燒雞肉漢堡（走沙律醬）","19","MOS 照燒雞漢堡","297","9"]],
+  bad:["辣味芝士摩斯漢堡 425kcal／21F（脂肪 ×2）","薯條、洋蔥圈","汽水／奶昔"],
+  tip:"走沙律醬即減 ~80 卡 — 漢堡迷減脂位"}
 ]},
 sw:{name:"上環／西營盤",list:[
  {n:"陳勤記鹵鵝飯店（上環）",t:"潮州滷鵝",good:[
@@ -662,11 +673,11 @@ sw:{name:"上環／西營盤",list:[
    ["滷水豆腐＋灼菜","12","陳勤記滷豆腐"]],
   bad:["鵝頸／鵝翼（皮＋皮下膏）","滷水汁撈飯（高鈉）","鵝油撈飯"],
   tip:"滷鵝其實清爽過燒鵝 — 去皮揀胸位就係好蛋白質"},
- {n:"兩餸飯（西營盤／上環飯檔）",t:"自選兩餸",good:[
-   ["蒸魚／滷雞髀＋蒸蛋＋灼菜","32","兩餸飯：蒸滷灼"],
-   ["口訣記住三個字：蒸、滷、灼","30","兩餸飯：揀餸口訣"]],
-  bad:["炸雞髀、咕嚕肉、糖醋排骨","半肥瘦燒肉、油雞髀（皮＋膏）","「睇落健康」嘅炒菜 — 底面成隻鑊油"],
-  tip:"同一個飯檔，揀啱餸同揀錯餸可以差成 400kcal"},
+ {n:"兩餸飯（西營盤／上環飯檔）",t:"自選兩餸",src:"LIVE4WELL",good:[
+   ["蒸魚／蒸蛋＋灼菜（一肉＋一菜）","32","兩餸飯：蒸魚蒸蛋"],
+   ["西芹炒雞柳／蒜香雞絲＋豆腐＋菜","30","兩餸飯：雞柳雞絲豆腐"]],
+  bad:["咕嚕肉、糖醋類、炸豬扒、火腩（茨汁＋炸）","半肥瘦燒肉、油雞髀（皮＋膏）","「睇落健康」嘅炒菜 — 底面成隻鑊油"],
+  tip:"營養師食法三招：先菜→再蛋白→最後飯；叫少飯；夾餸隔汁 — 少攝幾百卡隱形油"},
  {n:"越式 Pho（上環一帶小店）",t:"越南菜",good:[
    ["生牛肉河＋加牛肉＋豆芽","30","生牛肉河加牛"],
    ["雞絲撈檬（醬汁另上少少）","28","雞絲撈檬"]],
@@ -743,6 +754,18 @@ ts:{name:"尖沙咀",list:[
    ["日式烤魚／雞串 set＋白飯半碗","30","food court 雞串 set"],
    ["韓式石鍋飯（少飯多菜）","22","food court 石鍋飯"]],
   bad:["香氣最勁嗰檔＝通常係炸物檔","奶茶／雪糕 combo","自由配餐淨揀澱粉（車仔麵淨麵底）"]},
+ {n:"壽司郎（尖沙咀一帶，多區）",t:"迴轉壽司",src:"啊家RD",good:[
+   ["蝦三味 6 貫＋帆立貝 2 貫＋茶碗蒸","27","壽司郎蝦三味套餐","355","5"]],
+  bad:["炸蝦牛油果卷＋炙燒芝士三文魚 786kcal／38F（脂肪 4 重奏）","天婦羅／炸物檔","沙律醬類卷物"],
+  tip:"營養師評：低脂高蛋白之選 — 海鮮握壽司＋蒸物行主場"},
+ {n:"春水堂（K11 MUSEA）",t:"台式麵食",src:"啊家RD",good:[
+   ["牛骨濃湯牛肉麵（牛展，麵食半）","30","春水堂牛骨牛肉麵","554","18"]],
+  bad:["麻辣牛肉麵 752kcal／32F（湯面油脂＝熱量炸彈）","飲晒個湯（高鈉）","台式小食炸物"],
+  tip:"牛展＝低脂優質蛋白；湯底鈉高唔好飲"},
+ {n:"茶木 TeaWood（商場多區）",t:"台式餐廳",src:"啊家RD",good:[
+   ["茶香鮭魚湯漬飯（唔加脆米）","29","茶木鮭魚湯漬飯","495","19"]],
+  bad:["鹽酥排骨肉燥飯 1052kcal／48F（地瓜粉炸排骨）","一次過倒晒茶湯落飯","脆米／炸物 side"],
+  tip:"三文魚 Omega-3 幫消炎心血管 — 茶湯分開落"},
  {n:"翠華餐廳（尖沙咀多間）",t:"連鎖茶記",good:[
    ["薑蔥雞扒飯（汁另上）","30","薑蔥雞扒飯"],
    ["雪菜肉絲湯米（清湯底）","24","雪菜肉絲米"]],
@@ -758,6 +781,10 @@ ts:{name:"尖沙咀",list:[
   bad:["椰汁咖喱（korma／masala 底）","牛油 Naan 成件（≈300-400kcal）","印度香飯 biryani（埋面油飯）"]}
 ]},
 mk:{name:"旺角／太子",list:[
+ {n:"Sukiya（旺角一帶，多區）",t:"丼飯",src:"啊家RD",good:[
+   ["泡菜炭火烤雞丼（去皮）","31","Sukiya 烤雞丼去皮","588","8"]],
+  bad:["熱熔三式芝士牛丼 911kcal／38F（芝士＋肥牛＝7 茶匙油）","炸雞 side","芝士／肥牛類"],
+  tip:"去皮＝移除雞肉大部分脂肪 — 泡菜仲有少量纖維"},
  {n:"點點心（豉油街）",t:"點心",good:[
    ["蝦餃＋燒賣＋蒸排骨（揀瘦位）","26","點點心蝦餃燒賣"],
    ["蒸點行主場＋灼菜","20","點點心蒸點"]],
@@ -810,10 +837,15 @@ function renderEat(){
   var out="";
   EAT_GUIDE[EAT_CUR].list.forEach(function(r){
     out+='<div class="restbox">';
-    out+='<div class="rn">'+r.n+' <span class="small" style="font-weight:400;">· '+r.t+"</span></div>";
+    out+='<div class="rn">'+r.n+' <span class="small" style="font-weight:400;">· '+r.t+"</span>";
+    if(r.src)out+=' <span class="srcbadge">⭐ 營養師實測 · '+r.src+"</span>";
+    out+="</div>";
     out+='<div class="small" style="color:var(--green);font-weight:700;margin-top:7px;">✅ 建議食</div>';
     r.good.forEach(function(g){
-      out+='<div class="li">· '+g[0]+' <span class="small">≈'+g[1]+"g 蛋白</span>";
+      var meta="≈"+g[1]+"g 蛋白";
+      if(g[3])meta+=" · "+g[3]+" kcal";
+      if(g[4])meta+=" · "+g[4]+"g 脂";
+      out+='<div class="li">· '+g[0]+' <span class="small">'+meta+"</span>";
       out+='<button class="mini" onclick="addProt('+g[1]+',\''+g[2]+'\')">＋計</button></div>';
     });
     out+='<div class="small" style="color:var(--red);font-weight:700;margin-top:6px;">❌ 唔好食</div>';
