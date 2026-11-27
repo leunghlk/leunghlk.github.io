@@ -51,6 +51,8 @@ h2 .ic{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items
 .banner.red{background:var(--red-bg);border-color:transparent;font-weight:600;}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
 .dot.ok{background:var(--green);} .dot.wait{background:var(--amber);} .dot.err{background:var(--red);}
+#tip{position:fixed;z-index:99;background:var(--ink);color:var(--card);font-size:12.5px;padding:7px 10px;border-radius:10px;pointer-events:none;display:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:600;}
+.tp{cursor:pointer;}
 /* hero */
 .hero{background:linear-gradient(135deg,var(--green-d),var(--green) 70%);border:none;color:#fff;padding:16px;}
 .hero .sub2{color:rgba(255,255,255,.85);font-size:12.5px;}
@@ -228,6 +230,8 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
       </div>
       <svg id="trend" width="100%" height="96" viewBox="0 0 600 96" style="margin-top:12px;"></svg>
       <div class="small" id="trendlabel"></div>
+      <div style="overflow-x:auto;margin-top:10px;"><table class="hist" id="meashist"></table></div>
+      <div class="small" style="margin-top:6px;">量完喺 eify 睇到數 → 呢度填一筆（30 秒）；或者開埋 eify→Apple Health sync 之後捷徑自動入。11-23／5-24 兩份舊 report 已種入做基準。</div>
     </div>
     <div class="card">
       <h2><span class="ic">🔥</span>Streaks</h2>
@@ -269,7 +273,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
     </div>
     <div class="card">
       <h2><span class="ic">📲</span>Apple Health／Fitness 自動同步</h2>
-      <div class="small">網頁同 Scriptable 都讀唔到 Apple Health（iOS 私隱制）— 唯一路徑係 iOS <b>捷徑（Shortcuts）</b>讀 HealthKit → POST 上 diary worker。整一次（約 5 分鐘）。</div>
+      <div class="small">eify <b>冇公開 API</b>，直接接唔到 — 兩條現實路：①eify app 內搵「同步至 Apple Health」開咗，之後呢個捷徑自動拉體重/體脂 ②量完喺 📏 量度 tab 手動填（30 秒）。⭐Apple Health 嘅水分%（water%）好多 scale app 唔 sync — 呢格照手動填。⭐你 Health 單位係 kg：捷徑 JSON 加 <code>unit:"kg"</code>，server 自動轉 lbs。</div>
       <details><summary>Shortcut step-by-step (FULL ENGLISH — follow exactly)</summary>
         <div class="small" style="margin-bottom:6px;">⭐ 關鍵：Find Health Samples 甩出嚟係 sample 物件，必須加 <b>Get Details of Health Sample → Value</b> 先係數字；步數要用 <b>Calculate Statistics → Sum</b>。唔使填日期（server 自動用香港今日）。</div>
         <ol class="recipe">
@@ -286,7 +290,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
           <li>Add action <b>Get Contents of URL</b> → URL: <code>https://health-diary-sync.leunghlk.workers.dev/api/health</code></li>
           <li>Expand it → <b>Method</b>: change GET to <b>POST</b></li>
           <li>Expand → <b>Headers</b>: add field — Key: <code>X-Diary-Key</code>, Value: <code>1ea6694cef20345a6d18bc7ce550cab0</code></li>
-          <li>Expand → <b>Request Body</b>: choose <b>JSON</b> → tap <b>Add New Field</b> ×4（key 逐個打字，value 㩒住揀上面嘅變數）：<code>weight</code>＝Body Mass 嗰個 Value；<code>bf</code>＝Body Fat 嗰個 Value；<code>steps</code>＝第一個 Sum；<code>exercise_min</code>＝第二個 Sum。❌ 唔好加 d／date field</li>
+          <li>Expand → <b>Request Body</b>: choose <b>JSON</b> → tap <b>Add New Field</b> ×5（key 逐個打字，value 㩒住揀上面嘅變數）：<code>weight</code>＝Body Mass 嗰個 Value；<code>bf</code>＝Body Fat 嗰個 Value；<code>steps</code>＝第一個 Sum；<code>exercise_min</code>＝第二個 Sum；<code>unit</code>＝打字 <b>kg</b>（⭐你 Health 係 kg — server 自動轉 lbs，已實測 53.2kg→117.3lbs；如果第日轉用 lbs 就填 <code>lbs</code>）。❌ 唔好加 d／date field</li>
           <li>Add action <b>Show Result</b> → input auto = Contents of URL result（行完會見 server 回覆）</li>
           <li>Tap ▶ Run — 第一次行會問 Health permission → <b>Allow All</b>。預期結果：<code>{"ok":true,...}</code> 入面見到你嘅體重／步數</li>
         </ol>
@@ -311,6 +315,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
 
   <div class="footer">2026-11-26 開機 · lean 90 lbs 一磅唔准蝕 · 瞓 7.5-8h 係最大槓桿 · 沖涼 21:30-22:00 定響</div>
 </div>
+<div id="tip"></div>
 
 <script>
 /* ---------- config（同 ~/health-diary/config.json 保持一致） ---------- */
@@ -361,7 +366,10 @@ function lsLoad(){try{return JSON.parse(localStorage.getItem(LSK()))||blank();}c
 function lsSave(){localStorage.setItem(LSK(),JSON.stringify(D));pushHist();}
 function pushHist(){var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}
   var w=D.meas&&D.meas.weight?D.meas.weight.v:null; if(w==null)return;
-  h=h.filter(function(r){return r.d!==todayKey();}); h.push({d:todayKey(),w:w,bf:D.meas.bf?D.meas.bf.v:null});
+  var row={d:todayKey(),w:w,bf:D.meas.bf?D.meas.bf.v:null,
+    muscle:D.meas.muscle?D.meas.muscle.v:null,water:D.meas.water?D.meas.water.v:null,
+    visceral:D.meas.visceral?D.meas.visceral.v:null,waist:D.meas.waist?D.meas.waist.v:null};
+  h=h.filter(function(r){return r.d!==todayKey();}); h.push(row);
   var cut=dateKey(new Date(now().getTime()-200*86400e3));
   h=h.filter(function(r){return r.d>=cut;}); h.sort(function(a,b){return a.d<b.d?-1:1;});
   localStorage.setItem("hd_hist",JSON.stringify(h));}
@@ -373,7 +381,7 @@ function pullRecent(){
     if(!j.ok||!j.days||!j.days.length)return;
     var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];}catch(e){}
     var have={};h.forEach(function(r){have[r.d]=1;});
-    j.days.forEach(function(r){if(!have[r.d]&&r.weight)h.push({d:r.d,w:r.weight,bf:r.bf});});
+    j.days.forEach(function(r){if(!have[r.d]&&r.weight)h.push({d:r.d,w:r.weight,bf:r.bf,muscle:r.muscle,water:r.water,visceral:r.visceral,waist:r.waist});});
     var cut=dateKey(new Date(now().getTime()-200*86400e3));
     h=h.filter(function(r){return r.d>=cut;}); h.sort(function(a,b){return a.d<b.d?-1:1;});
     localStorage.setItem("hd_hist",JSON.stringify(h));
@@ -583,7 +591,9 @@ function render(){
     svg='<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e9f5c"/><stop offset="1" stop-color="#0e9f5c" stop-opacity="0"/></linearGradient></defs>';
     svg+='<polygon points="'+area+'" fill="url(#g1)" opacity="0.25"/>';
     svg+='<polyline points="'+line+'" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-    svg+='<circle cx="'+P[P.length-1][0]+'" cy="'+P[P.length-1][1]+'" r="5" fill="var(--green)" stroke="var(--card)" stroke-width="2.5"/>';
+    /* hover/tap 點：透明 r=9 hit layer 帶 data，下面細點做視覺 */
+    svg+=P.map(function(pt,i){var r=hw[i];return '<circle class="tp" cx="'+pt[0]+'" cy="'+pt[1]+'" r="10" fill="transparent" data-d="'+r.d+'" data-w="'+r.w+'" data-bf="'+(r.bf==null?"":r.bf)+'"/>';}).join("");
+    svg+=P.map(function(pt){return '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="3.5" fill="var(--green)" stroke="var(--card)" stroke-width="1.5"/>';}).join("");
     svg+='<line x1="0" y1="'+floorY+'" x2="600" y2="'+floorY+'" stroke="var(--red)" stroke-dasharray="6,5" stroke-width="1.4" opacity=".7"/>';
     document.getElementById("trendlabel").textContent="體重歷史（"+hw[0].d.slice(5)+" → "+hw[hw.length-1].d.slice(5)+"）· 紅虛線＝111 底線";
   }else{
@@ -619,9 +629,25 @@ function render(){
     ht+="</tr>";
   }
   document.getElementById("hist").innerHTML=ht;
+  renderMeasHist();
+}
+/* ---------- 量度歷史 table ---------- */
+function renderMeasHist(){
+  var h=histW().slice(-15).reverse();var el=document.getElementById("meashist");if(!el)return;
+  var ht="<tr><th>日期</th><th>lbs</th><th>BF%</th><th>肌肉</th><th>水分%</th><th>內臟</th><th>腰cm</th></tr>";
+  if(!h.length)ht+="<tr><td colspan='7' class='small'>聽朝磅完填第一行</td></tr>";
+  h.forEach(function(r){ht+="<tr><td>"+r.d.slice(5)+"</td><td><b>"+(r.w!=null?r.w:"–")+"</b></td><td>"+(r.bf!=null?r.bf:"–")+"</td><td>"+(r.muscle!=null?r.muscle:"–")+"</td><td>"+(r.water!=null?r.water:"–")+"</td><td>"+(r.visceral!=null?r.visceral:"–")+"</td><td>"+(r.waist!=null?r.waist:"–")+"</td></tr>";});
+  el.innerHTML=ht;
 }
 
 /* ---------- boot ---------- */
+var tipEl=document.getElementById("tip");
+function tipShow(html,x,y){tipEl.innerHTML=html;tipEl.style.display="block";tipEl.style.left=Math.min(window.innerWidth-150,x+12)+"px";tipEl.style.top=Math.max(4,y-40)+"px";}
+document.addEventListener("mouseover",function(e){var t=e.target;
+  if(t.classList&&t.classList.contains("tp")){tipShow("<b>"+t.dataset.w+" lbs</b>"+(t.dataset.bf?" · BF "+t.dataset.bf+"%":"")+"<br><span style='opacity:.7;font-weight:400;'>"+t.dataset.d+"</span>",e.clientX,e.clientY);}
+  else tipEl.style.display="none";});
+document.addEventListener("touchstart",function(e){var t=e.target;
+  if(t.classList&&t.classList.contains("tp")){var r0=t.getBoundingClientRect();tipShow("<b>"+t.dataset.w+" lbs</b>"+(t.dataset.bf?" · BF "+t.dataset.bf+"%":"")+"<br><span style='opacity:.7;font-weight:400;'>"+t.dataset.d+"</span>",r0.left,r0.top);setTimeout(function(){tipEl.style.display="none";},2600);}},{passive:true});
 document.getElementById("wurl").textContent=WORKER;
 document.getElementById("wkey").textContent=DIARY_KEY;
 D=lsLoad();
