@@ -10,7 +10,7 @@
      訓練分開制：Mon 臀腿 A／Tue 上肢 B＋晚跑／Wed 核心＋臀外側／Thu 上肢輕＋晚跑 5km／Fri 臀腿 E／Sat walk／Sun 長課。
      Thigh gap 制：唔做負重內收，練臀大＋臀中。
      Worker 直接開見 bad key／人話 401＝正常（要 X-Diary-Key header，頁面自動帶）。
-     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 43 間）＋建議食／唔好食；高蛋白 low fat 導向：good row=[菜式,蛋白g,log label,kcal?,脂g?]；src badge＝營養師實測（IG @nutrition_ah_ga 啊家 RD 6 品牌實測數＋@live4well.io 兩餸飯＋Bowtie/F45 譚仔數）；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
+     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 45 間）＋建議食／唔好食；高蛋白 low fat 導向：good row=[菜式,蛋白g,log label,kcal?,脂g?]；src badge＝營養師實測（IG @nutrition_ah_ga 啊家 RD 6 品牌實測數＋@live4well.io 兩餸飯＋FB Eacy Nutrition RD 十三姨＋Bowtie/F45 譚仔數＋@lady13kitchen 官方 kcal 表）；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
 <style>
 :root{
   --bg1:#eef6f1; --bg2:#e7f0ec;
@@ -224,7 +224,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
       <div class="small" style="margin-bottom:10px;">揀餐三步：① 先鎖蛋白 30g+ → ② 走汁／走炸／走白汁 → ③ 白飯半碗＋灼菜搭夠。營養師總結：✅去皮／走醬／清湯／揀海鮮雞肉 ⚠️炸物／芝士／辣油／肥牛排骨。「＋計」入蛋白 tally；kcal／脂＝營養師實測或官方數。⭐2026-11 資料 — 去前開 map 睇下舖頭仲開唔開。</div>
       <div class="seg" id="eatdist" style="margin-bottom:12px;"></div>
       <div id="eatrest"></div>
-      <div class="small" style="margin-top:6px;">資料源：IG <b>@nutrition_ah_ga</b>（澳洲註冊營養師潘卓琳 · 6 大品牌實測）· <b>@live4well.io</b>（兩餸飯心法）· Bowtie／F45（譚仔數據）· <b>@nutrilion.hk</b></div>
+      <div class="small" style="margin-top:6px;">資料源：IG <b>@nutrition_ah_ga</b>（澳洲註冊營養師潘卓琳 · 6 大品牌實測）· <b>@live4well.io</b>（兩餸飯心法）· Bowtie／F45（譚仔數據）· FB <b>Eacy Nutrition</b>（註冊營養師 · 十三姨）· @hkfoodie_.lowcarblife（低醣 KOL）· @lady13kitchen（十三姨官方 kcal 表）· <b>@nutrilion.hk</b></div>
     </div>
   </div>
 
@@ -797,6 +797,12 @@ mk:{name:"旺角／太子",list:[
    ["泡菜炭火烤雞丼（去皮）","31","Sukiya 烤雞丼去皮","588","8"]],
   bad:["熱熔三式芝士牛丼 911kcal／38F（芝士＋肥牛＝7 茶匙油）","炸雞 side","芝士／肥牛類"],
   tip:"去皮＝移除雞肉大部分脂肪 — 泡菜仲有少量纖維"},
+ {n:"十三姨（通菜街）",t:"新派港式湯麵",src:"EacyRD",good:[
+   ["十三么轉翠玉瓜麵（+$20，麵底 36kcal）＋手撕雞＋雞叉燒＋溏心蛋","35","十三姨十三么翠玉瓜"],
+   ["Eacy 版：翠玉瓜拼粉絲／米粉（麵底 147-240kcal）＋瘦料","32","十三姨拼麵均衡版"],
+   ["十三飛轉翠玉瓜麵：安格斯牛肩胛＋牛肋條＋溏心蛋","32","十三姨十三飛翠玉瓜"]],
+  bad:["陽春麵底 352kcal（9 款麵底最高）","餐前免費炸蒜片 — 記得走乾蔥","腸粉三條（澱粉位，想再低醣可以留低）"],
+  tip:"Eacy 營養師：揀一半翠玉瓜一半米粉／粉絲最均衡；佐敦白加士街／尖沙咀寶勒巷都有分店；11:30-23:00"},
  {n:"點點心（豉油街）",t:"點心",good:[
    ["蝦餃＋燒賣＋蒸排骨（揀瘦位）","26","點點心蝦餃燒賣"],
    ["蒸點行主場＋灼菜","20","點點心蒸點"]],
@@ -832,6 +838,12 @@ jt:{name:"佐敦／油麻地",list:[
    ["淨雲吞＋灼菜","25","麥文記淨雲吞"]],
   bad:["全份麵食晒","豉油皇炒麵（油炒麵）"],
   tip:"同澳牛一條街 — 兩間二選一，唔好一場嚟食晒"},
+ {n:"十三姨（白加士街）",t:"新派港式湯麵",src:"EacyRD",good:[
+   ["十三么轉翠玉瓜麵（+$20，麵底 36kcal）＋手撕雞＋雞叉燒＋溏心蛋","35","十三姨十三么翠玉瓜"],
+   ["Eacy 版：翠玉瓜拼粉絲／米粉（麵底 147-240kcal）＋瘦料","32","十三姨拼麵均衡版"],
+   ["十三飛轉翠玉瓜麵：安格斯牛肩胛＋牛肋條＋溏心蛋","32","十三姨十三飛翠玉瓜"]],
+  bad:["陽春麵底 352kcal（9 款麵底最高）","餐前免費炸蒜片 — 記得走乾蔥","腸粉三條（澱粉位，想再低醣可以留低）"],
+  tip:"官方 9 款麵底 kcal：翠玉瓜 36／米粉 218／粉絲 285／銀針粉 278／陽春麵 352；雞湯底清甜；尖沙咀寶勒巷／旺角通菜街都有分店"},
  {n:"美都餐室（廟街）",t:"老香港茶室",good:[
    ["西煎雙蛋＋多士","15","美都煎蛋多士"],
    ["火腿通粉（清湯底）","12","美都火腿通粉"]],
