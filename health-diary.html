@@ -10,7 +10,7 @@
      訓練分開制：Mon 臀腿 A／Tue 上肢 B＋晚跑／Wed 核心＋臀外側／Thu 上肢輕＋晚跑 5km／Fri 臀腿 E／Sat walk／Sun 長課。
      Thigh gap 制：唔做負重內收，練臀大＋臀中。
      Worker 直接開見 bad key／人話 401＝正常（要 X-Diary-Key header，頁面自動帶）。
-     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 45 間）＋建議食／唔好食；高蛋白 low fat 導向：good row=[菜式,蛋白g,log label,kcal?,脂g?]；src badge＝營養師實測（IG @nutrition_ah_ga 啊家 RD 6 品牌實測數＋@live4well.io 兩餸飯＋FB Eacy Nutrition RD 十三姨＋Bowtie/F45 譚仔數＋@lady13kitchen 官方 kcal 表）；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
+     11-28 加 🍜 減脂外食指南（飲食 tab）：揀區域→具體餐廳（7 區 48 間）＋建議食／唔好食；高蛋白 low fat 導向：good row=[菜式,蛋白g,log label,kcal?,脂g?]；🏆低脂高蛋白效率榜＝renderEat 每次由全區資料自動計 P/100kcal 排前 5，撳掣跳區；src badge＝營養師實測（IG @nutrition_ah_ga 啊家 RD 6 品牌實測數＋@live4well.io 兩餸飯＋FB Eacy Nutrition RD 十三姨＋Bowtie/F45 譚仔數＋@lady13kitchen 官方 kcal 表＋@nutrilion.hk 華御結組合＋SundayMore 營養師 15 款攻略）；「＋計」直接入蛋白 tally；純本地資料唔入 worker，揀過嘅區 localStorage hd_eatdist 記住；2026-11 資料唔保證舖頭仲開。 -->
 <style>
 :root{
   --bg1:#eef6f1; --bg2:#e7f0ec;
@@ -224,7 +224,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
       <div class="small" style="margin-bottom:10px;">揀餐三步：① 先鎖蛋白 30g+ → ② 走汁／走炸／走白汁 → ③ 白飯半碗＋灼菜搭夠。營養師總結：✅去皮／走醬／清湯／揀海鮮雞肉 ⚠️炸物／芝士／辣油／肥牛排骨。「＋計」入蛋白 tally；kcal／脂＝營養師實測或官方數。⭐2026-11 資料 — 去前開 map 睇下舖頭仲開唔開。</div>
       <div class="seg" id="eatdist" style="margin-bottom:12px;"></div>
       <div id="eatrest"></div>
-      <div class="small" style="margin-top:6px;">資料源：IG <b>@nutrition_ah_ga</b>（澳洲註冊營養師潘卓琳 · 6 大品牌實測）· <b>@live4well.io</b>（兩餸飯心法）· Bowtie／F45（譚仔數據）· FB <b>Eacy Nutrition</b>（註冊營養師 · 十三姨）· @hkfoodie_.lowcarblife（低醣 KOL）· @lady13kitchen（十三姨官方 kcal 表）· <b>@nutrilion.hk</b></div>
+      <div class="small" style="margin-top:6px;">資料源：IG <b>@nutrition_ah_ga</b>（澳洲註冊營養師潘卓琳 · 6 大品牌實測）· <b>@live4well.io</b>（兩餸飯心法）· Bowtie／F45（譚仔數據）· FB <b>Eacy Nutrition</b>（註冊營養師 · 十三姨）· @hkfoodie_.lowcarblife（低醣 KOL）· @lady13kitchen（十三姨官方 kcal 表）· <b>@nutrilion.hk</b>（500 卡系列＋華御結組合）· SundayMore 營養師（15 款高蛋白外食攻略）</div>
     </div>
   </div>
 
@@ -677,7 +677,18 @@ cw:{name:"中環／金鐘",list:[
  {n:"MOS BURGER（多區商場）",t:"漢堡",src:"啊家RD",good:[
    ["照燒雞肉漢堡（走沙律醬）","19","MOS 照燒雞漢堡","297","9"]],
   bad:["辣味芝士摩斯漢堡 425kcal／21F（脂肪 ×2）","薯條、洋蔥圈","汽水／奶昔"],
-  tip:"走沙律醬即減 ~80 卡 — 漢堡迷減脂位"}
+  tip:"走沙律醬即減 ~80 卡 — 漢堡迷減脂位"},
+ {n:"Pret A Manger（中環多間）",t:"沙律／三文治",src:"SundayMoreRD",good:[
+   ["高蛋白沙律（三文魚＋烚蛋＋枝豆＋果仁）＋和風醬／半醬","28","Pret 三文魚蛋沙律","430","20"],
+   ["雞肉牛油果三文治＋湯","25","Pret 雞牛油果治","480","15"]],
+  bad:["沙律醬全落（轉和風／落一半）","baguette 厚底（澱粉炸彈）","曲奇＋飲品 combo"],
+  tip:"官方營養標示齊 — OT 買外賣嘅穩陣位；營養師一日餐單都用佢"},
+ {n:"便利店高蛋白組合（華御結／7-Eleven）",t:"OT 救星",src:"nutriLion＋SundayMoreRD",good:[
+   ["華御結 combo：珍寶炭燒雞腿＋雞胸肉沙律＋雞丸豆乳湯","38","華御結高蛋白組合","555",""],
+   ["水煮蛋×2＋希臘乳酪＋無糖豆漿","25","便利店蛋乳組合","350","10"],
+   ["雞胸肉沙律＋飯糰（醬落一半）","25","便利店沙律飯糰","420","12"]],
+  bad:["薯片／杯麵搭單","全糖豆漿／乳酪（睇標籤揀低糖）","關東煮淨食湯底位"],
+  tip:"nutriLion 實測組合 554.5kcal／37.7g 蛋白；水煮蛋每隻 6-7g — 標籤清楚知道自己食咩"}
 ]},
 sw:{name:"上環／西營盤",list:[
  {n:"陳勤記鹵鵝飯店（上環）",t:"潮州滷鵝",good:[
@@ -706,7 +717,7 @@ sw:{name:"上環／西營盤",list:[
 kc:{name:"石塘咀／堅尼地城",list:[
  {n:"一蘭拉麵（堅尼地城）",t:"拉麵",good:[
    ["鹽味／醬油湯底＋細麵＋唔飲湯","25","一蘭鹽味細麵"],
-   ["加溫泉蛋＋半份叉燒","30","一蘭加蛋"]],
+   ["加溫泉蛋＋半份叉燒（麵叫少）","35","一蘭加蛋"]],
   bad:["豚骨白湯（一碗 ≈800-1,000kcal）","唐揚炸雞 side、油揚（炸豆皮）","替玉＝第二碗麵"],
   tip:"個湯先係熱量主體 — 飲兩啖味就夠；辣度自選照咁玩"},
  {n:"新興食家（西營盤）",t:"通宵點心",good:[
@@ -769,7 +780,7 @@ ts:{name:"尖沙咀",list:[
  {n:"壽司郎（尖沙咀一帶，多區）",t:"迴轉壽司",src:"啊家RD",good:[
    ["蝦三味 6 貫＋帆立貝 2 貫＋茶碗蒸","27","壽司郎蝦三味套餐","355","5"]],
   bad:["炸蝦牛油果卷＋炙燒芝士三文魚 786kcal／38F（脂肪 4 重奏）","天婦羅／炸物檔","沙律醬類卷物"],
-  tip:"營養師評：低脂高蛋白之選 — 海鮮握壽司＋蒸物行主場"},
+  tip:"營養師評：低脂高蛋白之選 — 海鮮握壽司＋蒸物行主場；⚠️壽司飯都係碳水，3 件 ≈ 小半碗飯，刺身多啲更好"},
  {n:"春水堂（K11 MUSEA）",t:"台式麵食",src:"啊家RD",good:[
    ["牛骨濃湯牛肉麵（牛展，麵食半）","30","春水堂牛骨牛肉麵","554","18"]],
   bad:["麻辣牛肉麵 752kcal／32F（湯面油脂＝熱量炸彈）","飲晒個湯（高鈉）","台式小食炸物"],
@@ -858,7 +869,24 @@ function renderEat(){
   }).join("");
   var box=document.getElementById("eatrest");
   if(!EAT_GUIDE[EAT_CUR]){box.innerHTML="";return;}
-  var out="";
+  /* 低脂高蛋白效率榜：全區有 kcal+蛋白數嘅菜式，按 P/100kcal 排名（資料更新自動重計） */
+  var rows=[];
+  Object.keys(EAT_GUIDE).forEach(function(k){
+    EAT_GUIDE[k].list.forEach(function(r){
+      r.good.forEach(function(g){
+        if(g[3]&&+g[3]>0)rows.push({k:k,l:g[2],p:+g[1],c:+g[3]});
+      });
+    });
+  });
+  rows.sort(function(a,b){return (b.p/b.c)-(a.p/a.c);});
+  var lb="";
+  if(rows.length){
+    lb='<div class="small" style="margin-bottom:10px;">🏆 <b>低脂高蛋白效率榜</b>（蛋白 g／100kcal · 全區自動排名 · 撳去該區）：';
+    lb+=rows.slice(0,5).map(function(x,i){
+      return '<button class="mini" style="margin:3px 3px 0 0;" onclick="setEatDist(\''+x.k+'\')">'+(i+1)+". "+x.l+" "+(x.p*100/x.c).toFixed(1)+"</button>";
+    }).join("")+"</div>";
+  }
+  var out=lb;
   EAT_GUIDE[EAT_CUR].list.forEach(function(r){
     out+='<div class="restbox">';
     out+='<div class="rn">'+r.n+' <span class="small" style="font-weight:400;">· '+r.t+"</span>";
