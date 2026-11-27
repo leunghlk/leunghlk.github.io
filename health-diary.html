@@ -171,7 +171,7 @@ code{background:var(--mint);border-radius:6px;padding:1px 6px;font-size:12px;}
 
   <div class="panel" id="tab_eat">
     <div class="card">
-      <h2><span class="ic">🥩</span>蛋白質 tally <span class="small">目標 90g</span></h2>
+      <h2><span class="ic">🥩</span>蛋白質 tally <span class="small" id="prottgt">目標 64g（體重×1.2）</span></h2>
       <div class="row"><div class="big" id="prot">0g</div><div class="small" id="prothint"></div></div>
       <div class="bar"><div id="protbar" style="width:0%"></div></div>
       <div class="chips" id="protchips"></div>
@@ -329,7 +329,7 @@ var LADDER = [["2026-11-26","00:30"],["2026-12-10","23:45"],["2026-12-24","23:15
 var MAINT = [["2026-12-04","2026-12-08"]];
 var START = "2026-11-26";
 var GOAL_FROM = "2027-02-10", GOAL_TO = "2027-03-01";
-var PROTEIN_TARGET = 90, WATER_TARGET = 2000, STEPS_TARGET = 8000, WEIGHT_FLOOR = 111;
+var PROT_KG_MULT = 1.2, WATER_TARGET = 2000, STEPS_TARGET = 8000, WEIGHT_FLOOR = 111;
 var PROT_PRESETS = [
   ["午餐主餐",40],["Overnight oats",32],["晚餐",30],["Whey 1勺",24],
   ["Chobani 1杯",15],["蛋×2",13],["枝豆100g",11],["鮮奶/豆漿250ml",10]
@@ -522,6 +522,8 @@ function histW(){var h=[];try{h=JSON.parse(localStorage.getItem("hd_hist"))||[];
   /* 11-26 116.8/22.9＝11-27 深夜測試數據經 merge 漏入本地（我嘅衰）— 渲染一律跳過；用 edit 揀該日清空儲存可真刪 */
   return h.filter(function(r){return !(r.d==="2026-11-26"&&r.w===116.8&&r.bf===22.9);});}
 function fmt1(x){return (x===null||x===undefined||x==="")?"–":(+x).toFixed(1);}
+/* 蛋白 target＝最新量度體重(kg)×1.2，隨減重浮動；無量度數據 fallback 64g */
+function protTarget(){var h=histW();var w=h.length?h[h.length-1].w:null;return w?Math.round(w*0.45359237*PROT_KG_MULT):64;}
 function avgN(arr,fromD,toD){var s=0,c=0;arr.forEach(function(r){if(r.d>=fromD&&r.d<=toD){s+=r.w;c++;}});return c?s/c:null;}
 function daysAgoKey(n){var d=new Date(todayKey().replace(/-/g,"/"));d.setDate(d.getDate()-n);return dateKey(d);}
 function guardBanners(){
@@ -598,9 +600,11 @@ function render(){
   document.getElementById("checklist").innerHTML=h;
   /* protein */
   var p=D.protein&&D.protein.sum?D.protein.sum:0;
+  var pt=protTarget();
   document.getElementById("prot").textContent=p+"g";
-  document.getElementById("protbar").style.width=Math.min(100,p/PROTEIN_TARGET*100)+"%";
-  document.getElementById("prothint").textContent=p>=PROTEIN_TARGET?"達標 ✓":"仲差 "+(PROTEIN_TARGET-p)+"g";
+  document.getElementById("protbar").style.width=Math.min(100,p/pt*100)+"%";
+  document.getElementById("prothint").textContent=p>=pt?"達標 ✓":"仲差 "+(pt-p)+"g";
+  var ptLbl=document.getElementById("prottgt");if(ptLbl)ptLbl.textContent="目標 "+pt+"g（體重×1.2）";
   document.getElementById("protchips").innerHTML=PROT_PRESETS.map(function(x){return '<button onclick="addProt('+x[1]+',\''+x[0]+'\')">+'+x[1]+"g · "+x[0]+"</button>";}).join("");
   document.getElementById("protlog").textContent=D.protein&&D.protein.log.length?("今日："+D.protein.log.map(function(l){return l.label+"+"+l.g;}).join(" · ")):"";
   /* water */
@@ -610,7 +614,7 @@ function render(){
   /* hero summary strip */
   var tickCount=0;listDef().forEach(function(it){if(D.items[it.id]&&D.items[it.id].v)tickCount++;});
   document.getElementById("s_checks").textContent=tickCount+"/11";
-  document.getElementById("s_prot").textContent=p+"g"+(p>=PROTEIN_TARGET?" ✓":"");
+  document.getElementById("s_prot").textContent=p+"g"+(p>=protTarget()?" ✓":"");
   document.getElementById("s_water").textContent=w+"ml";
   document.getElementById("s_lights").textContent=tonightLights();
   /* meas form */
@@ -648,10 +652,10 @@ function render(){
   document.getElementById("trend").innerHTML=svg;
   /* streaks */
   var doneOn=function(dd,f){return dd&&dd.items&&dd.items[f]&&dd.items[f].v;};
-  var protOk=function(dd){return dd&&dd.protein&&dd.protein.sum>=PROTEIN_TARGET;};
+  var protOk=function(dd){return dd&&dd.protein&&dd.protein.sum>=protTarget();};
   document.getElementById("streaks").innerHTML=
     '<div class="s"><b>'+streakOf(function(dd){return doneOn(dd,"lights");})+' 日</b>熄燈達標</div>'+
-    '<div class="s"><b>'+streakOf(protOk)+' 日</b>蛋白 ≥90g</div>'+
+    '<div class="s"><b>'+streakOf(protOk)+' 日</b>蛋白 ≥'+protTarget()+'g</div>'+
     '<div class="s"><b>'+streakOf(function(dd){return doneOn(dd,"workout");})+' 日</b>運動</div>'+
     '<div class="s"><b>'+streakOf(function(dd){return dd&&dd.items&&dd.items.poop&&dd.items.poop.v==="ok";})+' 日</b>便便順</div>';
   /* history */
@@ -663,7 +667,7 @@ function render(){
     cols.forEach(function(c){
       var mark='<span class="na">–</span>';
       if(dd){
-        if(c[1]==="protein")mark=dd.protein&&dd.protein.sum>=PROTEIN_TARGET?'<span class="yes">✓</span>':(dd.protein&&dd.protein.sum>0?'<span class="no">'+dd.protein.sum+'g</span>':'<span class="na">–</span>');
+        if(c[1]==="protein")mark=dd.protein&&dd.protein.sum>=protTarget()?'<span class="yes">✓</span>':(dd.protein&&dd.protein.sum>0?'<span class="no">'+dd.protein.sum+'g</span>':'<span class="na">–</span>');
         else if(c[1]==="water")mark=dd.water&&dd.water.ml>=WATER_TARGET?'<span class="yes">✓</span>':(dd.water&&dd.water.ml>0?'<span class="no">'+dd.water.ml+'</span>':'<span class="na">–</span>');
         else if(c[1]==="poop"){var pv=dd.items&&dd.items.poop?dd.items.poop.v:null;mark=pv==="ok"?'<span class="yes">順</span>':(pv==="hard"?'<span class="no">硬</span>':(pv==="none"?'<span class="no">冇</span>':'<span class="na">–</span>'));}
         else if(c[1]==="chips"){var cv=dd.items&&dd.items.chips?dd.items.chips.v:null;mark=cv==="family"?'<span class="no">家庭裝</span>':(cv==="none"?'<span class="yes">冇</span>':(cv?'<span style="color:var(--amber)">'+cv+"</span>":'<span class="na">–</span>'));}
